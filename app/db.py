@@ -7,7 +7,7 @@ ids needed to find the original row.
 
 from pathlib import Path
 
-from sqlalchemy import event, text
+from sqlalchemy import event, inspect, text
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel, create_engine
 
@@ -42,8 +42,36 @@ def make_engine(url: str) -> Engine:
 engine = make_engine(settings.database_url)
 
 
+class OutdatedDatabaseError(RuntimeError):
+    """The database file was created by an older version of the tables."""
+
+
+def _missing_columns(target: Engine) -> list[str]:
+    """Columns the code expects that an existing database file doesn't have."""
+    inspector = inspect(target)
+    missing = []
+    for table in SQLModel.metadata.sorted_tables:
+        if inspector.has_table(table.name):
+            existing = {column["name"] for column in inspector.get_columns(table.name)}
+            missing += [f"{table.name}.{c.name}" for c in table.columns if c.name not in existing]
+    return missing
+
+
 def init_db(target: Engine = engine) -> None:
-    """Create all tables and FTS indexes if they don't exist yet."""
+    """Create all tables and FTS indexes if they don't exist yet.
+
+    `create_all` only adds missing tables; it never changes existing ones. There
+    are no migrations in this project, so if a table gained columns since the
+    database file was created, stop at startup with a clear message instead of
+    failing later with "Internal Server Error" on whichever page touches it.
+    """
+    missing = _missing_columns(target)
+    if missing:
+        raise OutdatedDatabaseError(
+            f"The database ({target.url}) was created by an older version of TechMind and is missing "
+            f"{', '.join(missing)}. Stop the server, delete the database file (data/techmind.db by default), "
+            "and start again; the demo company is re-seeded automatically."
+        )
     SQLModel.metadata.create_all(target)
     with target.begin() as conn:
         for statement in FTS_TABLES:

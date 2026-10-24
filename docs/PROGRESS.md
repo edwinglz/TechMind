@@ -22,7 +22,8 @@
 - `/app` dashboard shows the company's counts in its own words ("Stores", "Equipment", "Fixed by store staff"), equipment by category, and the company profile (collapsed).
 - The importer validates every file and reports errors with row numbers. It is used for seeding now and gets its own upload page in Phase 2.
 - The demo history generator plus checks for every planned pattern (`pytest` runs them).
-- 20 tests pass.
+- On startup, the app checks that the database file matches the current tables. If it's from an older version, startup stops with a message saying to delete it, instead of pages failing with "Internal Server Error".
+- 21 tests pass.
 
 ## Next
 

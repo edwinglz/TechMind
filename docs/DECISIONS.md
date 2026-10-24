@@ -105,6 +105,6 @@ One entry per significant choice: what we decided, what else we considered, and 
 - **Savings if a self-fix works** = trip fee + labor for the targeted cause's estimated minutes.
 - **Trip fee** applies when service mode is on-site or once a technician is assigned.
 - **Unknown model:** an optional model picker; if still unknown, retrieval spans the models installed at that site and the first question is "confirm the model".
-- **No migrations:** after a table changes, delete `data/techmind.db` and restart; the demo data is re-seeded. Fine for a hackathon, and deploys start fresh anyway.
+- **No migrations:** after a table changes, delete `data/techmind.db` and restart; the demo data is re-seeded. Startup detects an outdated database file (missing columns) and stops with that instruction rather than serving errors. Fine for a hackathon, and deploys start fresh anyway.
 - **Roles:** managers see all tickets; technicians see only their assigned ones. Only technicians close tickets, except the self-fix "resolved" outcome.
 - **Deployment:** Render (free tier wipes the disk, which is fine because the demo company is re-seeded on startup).

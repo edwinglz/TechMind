@@ -126,3 +126,14 @@ def test_profile_needs_labels(demo_files):
     errors = bundle.reports["profile.json"].errors
     assert "'labels.site' is required" in errors
     assert "'self_fix_allowed' must be a list of strings" in errors
+
+
+def test_outdated_database_fails_with_clear_message():
+    """An old database file missing new columns stops startup with instructions."""
+    from app.db import OutdatedDatabaseError
+
+    engine = make_engine("sqlite:///:memory:")
+    with engine.begin() as conn:
+        conn.execute(text("CREATE TABLE users (id INTEGER PRIMARY KEY, company_id INTEGER, name TEXT, role TEXT)"))
+    with pytest.raises(OutdatedDatabaseError, match="users.username.*delete the database file"):
+        init_db(engine)
