@@ -2,7 +2,7 @@
 
 TechMind turns vague equipment problem reports ("it's not working", "the drinks are flat") into a diagnostic brief before anyone is dispatched: likely causes with step-by-step fixes, cost estimates, questions to ask the reporter, and safe fixes the reporter can try first. Every closed ticket updates the company's knowledge base, so the most common issues and the best-performing fixes stay current. It works for any company that maintains equipment or products (restaurants, HVAC contractors, laptop repair shops, fleets). The demo company is a fictional burger chain whose stores each run beverage dispensers, fryers, griddles, ice machines, walk-in coolers, and rooftop HVAC.
 
-> Status: Phase 1 of 6 (data model, demo data, login, home page). See [docs/PROGRESS.md](docs/PROGRESS.md) for what works today.
+> Status: the full loop works (report → brief → self-fix or dispatch → technician → close → insights). Still to do: the import upload page and deployment. See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Setup
 
@@ -21,10 +21,13 @@ copy .env.example .env          # macOS/Linux: cp .env.example .env
 uvicorn app.main:app --reload
 ```
 
-Open http://127.0.0.1:8000:
-- `/` is the public TechMind product page. It isn't tied to any company.
-- **Log in** opens the login form.
-- After login, the product lives under `/app`.
+Open http://127.0.0.1:8000 and log in. The login page also pitches the product; after login, everything lives under `/app`:
+- **Board** (`/app`, managers): every report by what needs to happen next.
+- **New report**: pick the store, then the equipment there; type or dictate the problem; add a photo.
+- **Ticket**: the diagnostic brief, the manager's decision (phone self-fix or dispatch), questions for the reporter, chat and the event log.
+- **My jobs** (technicians, made for phones): assigned tickets with the brief, the question checklist, **Refine diagnosis** and **Close job**.
+- **Insights**: rising and fading issues, the fix that currently works best, repeat failures, trips avoided.
+- **History**: every ticket, plus a CSV export in the import format.
 
 On first start, the demo company is loaded from `demo_data/` into a fresh SQLite database (`data/techmind.db`), along with three demo accounts:
 
@@ -61,30 +64,31 @@ To reset everything (also needed after a database schema change), stop the serve
 
 | Variable | Purpose |
 |---|---|
-| `AI_MODE` | `mock` (default) returns canned briefs from `fixtures/`; `live` calls Claude |
+| `AI_MODE` | `mock` (default) builds briefs from the company's own data; `live` calls Claude |
 | `ANTHROPIC_API_KEY` | Needed only in live mode |
 | `DATABASE_URL` | SQLite location, default `sqlite:///./data/techmind.db` |
 | `UPLOAD_DIR` | Where photos and import files are stored, default `uploads` |
+| `MOCK_DELAY_SECONDS` | Pause before a mock brief appears, so the "Preparing the brief" steps can be seen (default 1.6) |
 | `AS_OF_DATE` | Optional `YYYY-MM-DD` "today" for trend math; blank = real date |
 | `SECRET_KEY` | Signs the login cookie; blank = random per start (everyone logged out on restart) |
 | `DEMO_PASSWORD` | Password for the demo accounts, applied when the demo company is first seeded |
 
 ## Mock vs live mode
 
-Develop in **mock** mode: briefs come from JSON fixtures in `fixtures/briefs/`, so no API budget is spent. Switch to **live** by setting `AI_MODE=live` and `ANTHROPIC_API_KEY` in `.env`, then restart. Live mode uses `claude-sonnet-5-5` for briefs and `claude-haiku-5-5` for fix matching, and logs token usage to the console. If a live call fails, the app falls back to the ticket's stored brief and shows a notice.
+Develop in **mock** mode: briefs are built from the company's own data (known issues matched to the report's wording, ranked by recent frequency, re-ranked by answers and failed self-fixes), so no API budget is spent and the whole demo works without a key. Switch to **live** by setting `AI_MODE=live` and `ANTHROPIC_API_KEY` in `.env`, then restart. Live mode uses `claude-sonnet-5-5` for briefs and `claude-haiku-5-5` for fix matching, and logs token usage to the console. If a live call fails, the app falls back to the ticket's previous live brief (or a mock one) and shows a notice.
 
 ## Demo script (3 minutes)
 
-0. **Open.** Start on the TechMind product page, click **Log in**, and sign in as `manager`.
-1. **Intake.** The manager gets a call from Store #4, dictates "Coke and Sprite are coming out flat, kind of watery", picks the countertop drink dispenser from the store's equipment list, and uploads a photo.
-2. **Brief.** Causes include an empty or closed CO2 tank, a carbonator pump failure, and a warm cold plate, each with a cost, plus questions for store staff and a CO2 safety warning.
-   - The staff self-fix is "check that the CO2 tank valve is open and the gauge isn't in the red", showing the savings if it works.
-   - The manager approves it, calls the store, the tank is full, and marks it not resolved.
-   - The manager dispatches Ana.
-3. **Technician (phone).** On a phone, log in as `ana`. Ana sees the store address, a repeat-failure flag on this dispenser, and the questions. She checks one off, taps **Refine**, and the carbonator pump moves to the top. She messages the manager.
-4. **Close.** Ana closes the ticket with a fix that differs from the recommended one.
-5. **History page.** Beverage valve leaks are marked rising, summer cooling issues (ice, walk-in, HVAC, warm drinks) fading, the recommended fix has updated because of Ana's ticket, and the dispatches-avoided counter shows savings.
-6. **Closing line:** "Any company loads its own manuals, history, and profile, and the same system adapts to them."
+Before the demo: delete `data/techmind.db` and restart so the board is empty and the numbers match.
+
+0. **Open.** The login page explains the product in one line. Sign in as `manager`; the board is empty.
+1. **Intake.** "Store #4 calls." Click **New report**, pick *Store #4 - Riverside*, then the *CI-200 Countertop Ice/Beverage Dispenser*. Its recent tickets appear on the right. Dictate "Coke and Sprite are coming out flat, kind of watery", keep **Guide them by phone first**, and create the report.
+2. **Brief.** The preparing steps play, then: a repeat-failure warning (4 tickets in 60 days), carbonator pump failure ranked first with evidence, sources, steps, parts and a cost, a CO2 safety warning, questions for store staff, and a phone self-fix (check the syrup bag and CO2 tank) that would save about $116.
+3. **Self-fix.** Click **Approve, I'll call the store**. "The store says the tank is full." Type that note and click **Didn't work**: the brief re-ranks, and the board shows the ticket moved. Dispatch to **Ana** and send her a chat message.
+4. **Technician (phone).** On a phone, log in as `ana`. She sees the job, the repeat flag and the brief. Under **Ask the store staff**, tap **Yes** for "Carbonator pump runs constantly or hums?" and **Refine diagnosis**.
+5. **Close.** **Close job**: the brief's top cause is preselected. Pick **Fix a technician found** (clean the strainer and replace the check valve), tick the check valve, 40 minutes, **Close job**.
+6. **Insights.** Back as the manager: the carbonator fix now shows "Technician fix, now outperforming the manual" (Ana's job was its third success), valve leaks are rising, summer cooling problems are fading, and 36 trips were avoided.
+7. **Closing line:** "Any company loads its own manuals, history and profile, and the same system adapts to them."
 
 ## Docs
 

@@ -23,7 +23,7 @@ from app.ai.schema import BriefData, Cause, Question, SelfFix, Source
 from app.config import settings
 from app.models import Brief, Company, Ticket, TicketEvent
 from app.services.insights import recommended_parts
-from app.services.retrieval import Context, build_context, stem, stems
+from app.services.retrieval import Context, build_context, stems
 from app.templating import labels_for
 from app.templating import midcase as _lower
 
@@ -161,16 +161,17 @@ def _mock(ctx: Context, labels: dict, answers: dict, self_fix: dict | None, prev
                                   why=f"Yes points to {_lower(issue.title)}; no makes it less likely."))
     questions = questions[:5]
 
-    # Safety topics whose first words appear in the likely causes or the equipment category.
-    # (Titles and fix steps only: symptom text like "motor hot to the touch" would wrongly match "hot oil".)
+    # Safety topics that share at least two words with the likely causes, their fix steps and the
+    # equipment category. (Titles and fix steps only: symptom text like "motor hot to the touch"
+    # would otherwise match "hot oil".)
     cause_text = " ".join(f"{c.cause} {' '.join(c.fix_steps)}" for c in causes[:3])
-    cause_text += " " + " ".join(p.category for p in ctx.products)
-    cause_stems = stems(cause_text)
-    warnings = []
+    cause_stems = stems(cause_text + " " + " ".join(p.category for p in ctx.products))
+    scored = []
     for topic in profile.get("safety_topics", []):
-        head = topic.split(":")[0]
-        if {stem(w) for w in head.lower().replace("co2", "co2 ").split()} & cause_stems:
-            warnings.append(topic)
+        head = topic.split(":")[0]  # the hazard's name, e.g. "gas leaks"
+        if stems(head) & cause_stems:
+            scored.append((len(stems(topic) & cause_stems), topic))
+    warnings = [topic for score, topic in sorted(scored, key=lambda x: -x[0]) if score >= 2]
     warnings = warnings[:3]
 
     where = f"{ctx.product.model_name} at {ctx.site.name}" if ctx.product else f"unknown {labels['asset']} at {ctx.site.name}"

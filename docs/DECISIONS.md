@@ -108,3 +108,28 @@ One entry per significant choice: what we decided, what else we considered, and 
 - **No migrations:** after a table changes, delete `data/techmind.db` and restart; the demo data is re-seeded. Startup detects an outdated database file (missing columns) and stops with that instruction rather than serving errors. Fine for a hackathon, and deploys start fresh anyway.
 - **Roles:** managers see all tickets; technicians see only their assigned ones. Only technicians close tickets, except the self-fix "resolved" outcome.
 - **Deployment:** Render (free tier wipes the disk, which is fine because the demo company is re-seeded on startup).
+
+## A real mock engine instead of canned fixtures
+- **Decided:** mock mode builds each brief from the company's own data (known issues matched to the report, ranked by frequency and trend, re-ranked by answers and failed self-fixes) rather than returning fixed JSON files.
+- **Alternatives:** the spec's fixture briefs in `/fixtures`.
+- **Why:** with about $5 of API budget and no key yet, the demo has to work without Claude. A data-driven mock gives a different, sensible brief for any report, and Refine visibly changes the ranking. Live mode uses the same retrieval and output shape.
+
+## The manager board replaces the counts dashboard; the login page is the front door
+- **Decided:** after login, managers land on a board of reports grouped by the next action; technicians land on My jobs. `/` shows the login page with a one-line pitch.
+- **Alternatives:** the Phase 1 dashboard of counts plus a separate product page.
+- **Why:** product owner's feedback that the app didn't feel like their idea. The core of the idea is the ticket flow, so it's the first thing anyone sees.
+
+## Own stylesheet and bundled assets instead of Tailwind from a CDN
+- **Decided:** one hand-written stylesheet (`app/static/app.css`) with a service-tag visual language; Barlow fonts and htmx are bundled in `app/static/`.
+- **Alternatives:** Tailwind's CDN build.
+- **Why:** a distinctive look for the pitch, and nothing to download at the venue, so the demo works on bad wifi.
+
+## Closing picks a fix from a list
+- **Decided:** the close form lists the issue's known fix variants with their success rates; the technician picks one or describes a different fix.
+- **Alternatives:** free-text only, matched by Haiku (the spec's approach).
+- **Why:** faster on a phone, no AI call needed in the common case, and the demo's "the recommended fix changes" moment is reliable. Free text is still matched by Haiku in live mode.
+
+## A failed self-fix re-ranks the brief automatically
+- **Decided:** when the manager records that the reporter's self-fix didn't work, the brief is regenerated with that information.
+- **Alternatives:** wait for someone to press Refine.
+- **Why:** the most useful moment for a new ranking is right before dispatching.

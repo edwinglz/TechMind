@@ -1,6 +1,6 @@
 # Architecture
 
-TechMind is a single FastAPI app that renders HTML pages with Jinja2 templates. HTMX adds small interactive bits (chat polling, partial page swaps) without a JavaScript framework. Everything is stored in one SQLite database. The only external service is the Claude API, and even that can be swapped for canned fixtures (`AI_MODE=mock`).
+TechMind is a single FastAPI app that renders HTML pages with Jinja2 templates. HTMX adds small interactive bits (chat polling, partial page swaps) without a JavaScript framework. Everything is stored in one SQLite database. Fonts and htmx are bundled in `app/static/`, so nothing loads from a CDN. The only external service is the Claude API, and even that is optional: in `AI_MODE=mock` the brief is built from the company's own data.
 
 ## The big idea: no domain knowledge in code
 
@@ -21,18 +21,23 @@ The profile is injected into the AI prompt and into every page template. Swappin
 | `app/db.py` | Database engine, sessions, FTS5 search tables |
 | `app/auth.py` | Password hashing, signed session cookie, `require_login` dependency for pages |
 | `app/seed.py` | Loads the demo company and its demo accounts when the database is empty |
-| `app/templating.py` | Jinja2 setup; company labels (`L.site`, `L.assets`, …) and money formatting |
+| `app/templating.py` | Jinja2 setup; company labels (`L.site`, `L.assets`, …), money and time formatting, ticket status display |
 | `app/importer/` | `parse.py` validates import files into a preview; `load.py` writes them; `manuals.py` splits manuals into sections |
-| `app/services/` | Shared logic: search-index writes, fix-variant helpers (more in later phases) |
-| `app/routes/` | One module per page area: `public.py` (product page), `login.py`, `dashboard.py` |
-| `app/templates/` | HTML pages (Tailwind + HTMX from CDNs, no build step). `base.html` is the bare shell; `app_base.html` is the logged-in layout |
+| `app/services/retrieval.py` | Gathers what a brief needs: manual sections, known issues ranked by match and trend, similar tickets, the unit's history, parts |
+| `app/services/brief.py` | Builds the brief (mock engine from company data, or live via Claude), computes costs, stores versions |
+| `app/services/insights.py` | Issue frequency, rising/fading trends, fix-variant success rates and the recommended fix, trips avoided |
+| `app/services/tickets.py` | Every ticket change (create, self-fix, assign, answer, close) and the knowledge update on close |
+| `app/services/search.py`, `fix_variants.py` | Search-index writes; fix-step normalization |
+| `app/ai/` | `schema.py` (the brief's shape, Pydantic), `prompts.py` (the live prompt), `client.py` (Claude calls) |
+| `app/routes/` | `public.py` (front page), `login.py`, `tickets.py` (board, intake, ticket actions, close, unit pages), `insights.py` (insights, history, CSV export) |
+| `app/templates/` | HTML pages; `partials/` are the pieces HTMX swaps in. Styling is one hand-written stylesheet, `app/static/app.css` |
 | `demo_data/` | The fictional demo company, in the import format |
 | `scripts/generate_demo_history.py` | Builds and checks `demo_data/assets.csv` and `demo_data/ticket_history.csv` |
 | `tests/` | pytest suite |
 
 ## Pages and login
 
-- `/` is the public product page. It describes TechMind in general terms and shows no company's data. Its only way in is **Log in**.
+- `/` is the login page, which also pitches TechMind in general terms and shows no company's data.
 - `/login` checks a username and password against the `users` table. Passwords are stored as salted PBKDF2 hashes.
 - A successful login sets a cookie holding the user id plus an HMAC signature made with `SECRET_KEY`. Changing the id in the cookie breaks the signature, so it can't be used to become someone else.
 - `/app/...` is the product. Every page there depends on `require_login`, which reads the cookie, loads the user and their company, and redirects to `/login` if anything is missing. All data shown is filtered by that company's id.
@@ -47,15 +52,15 @@ The profile is injected into the AI prompt and into every page template. Swappin
 
 ```mermaid
 flowchart TD
-    A[Manager enters report<br/>site, asset, description, photo] --> B[Retrieval<br/>manual sections via FTS5<br/>known issues ranked by trend<br/>similar past tickets<br/>asset history]
-    B --> C[One Claude call with vision<br/>+ domain profile]
+    A[Manager enters report<br/>site, asset, description, photo] --> B[Retrieval<br/>manual sections via FTS5<br/>known issues ranked by match and trend<br/>similar past tickets<br/>asset history]
+    B --> C[Brief engine<br/>mock: company data only<br/>live: one Claude call with vision + domain profile]
     C --> D{Valid JSON brief?}
     D -- no, retry once --> C
     D -- yes --> E[Store brief + compute costs in Python]
     E --> F{Reporter self-fix<br/>suggested?}
     F -- manager approves --> G[Awaiting reporter self-fix<br/>manager phones reporter]
     G -- resolved --> H[Closed: resolved by reporter<br/>dispatch avoided logged]
-    G -- not resolved --> I
+    G -- not resolved: brief re-ranks --> I
     F -- no / skipped --> I[Manager assigns technician]
     I --> J[Technician on phone<br/>brief, questions checklist, chat]
     J -- answers + Refine --> C
@@ -89,10 +94,19 @@ Every table has an integer `id` and a `company_id`, so several companies can sha
 
 Ticket status moves `new → briefed → awaiting_self_fix → assigned → closed` (the self-fix step is optional).
 
-## Adaptability logic (planned, Phase 5)
+## Adaptability logic
 
 All of this is plain SQL and Python over the tickets table; there is no model training.
 
-- **Fix variants.** Each known issue can have several fixes. Success stats (attempts, successes, average minutes) are computed from the tickets that used each variant. The **recommended fix** is the variant with the best success rate among those with at least 3 attempts; ties go to the faster one. When a technician describes a different fix, a small Claude Haiku call decides whether it matches an existing variant or is new.
-- **Common issues.** Each issue's recent frequency is a recency-weighted count over the last 90 days: a ticket from today counts 1, one from 30 days ago counts 0.5, from 60 days ago 0.25. An issue is **rising** if the last 30 days had more tickets than the 30 before, **fading** if fewer. The busier of the two windows needs at least 2 tickets, so a single ticket (1 vs 0) doesn't count as a trend. Retrieval ranks known issues by this score, so briefs shift as conditions change.
+- **Fix variants.** Each known issue can have several fixes. Success stats (attempts, successes, average minutes) are computed from the tickets that used each variant. The **recommended fix** is the variant with the best success rate among those with at least 3 attempts; ties go to the faster one, and the company's listed fix keeps the title on an equal rate. When closing, the technician picks the fix they used from a list; if they describe something else, a small Claude Haiku call (or word overlap in mock mode) decides whether it matches an existing variant or is new.
+- **Common issues.** Each issue's recent frequency is a recency-weighted count over the last 90 days: a ticket counts `1 - age/90`, so today counts 1, 45 days ago 0.5, and 90 days ago nothing. An issue is **rising** if the last 30 days had more tickets than the 30 before, **fading** if fewer. The busier of the two windows needs at least 2 tickets, so a single ticket (1 vs 0) doesn't count as a trend. Retrieval ranks known issues by this score, so briefs shift as conditions change.
 - **Repeat failures.** An asset with 3 or more tickets in 60 days is flagged in the brief and on its page.
+
+## The brief: mock and live
+
+Both engines return the same validated shape (`app/ai/schema.py`):
+
+- **Mock** (`app/services/brief.py`): causes are the known issues whose symptoms share the most words with the report (a small stemmer makes "leaking" match "leak"), boosted by recent frequency and a rising trend. Answers re-rank them: "yes" to a question about a cause raises it, "no" lowers it, and a failed self-fix pushes its targets down. Questions ask about each cause's most distinctive symptom that the report didn't already mention. The self-fix uses only issues the company marked as reporter-fixable. Safety topics are included when the hazard's name matches the likely causes.
+- **Live** (`app/ai/`): the same retrieved context, the photo and the domain profile go to `claude-sonnet-5-5` in one call. The reply is validated with Pydantic and retried once if invalid. Any failure falls back to the previous brief or a mock one, with a notice on the page.
+
+In both, costs are computed in Python from the parts list, the labor rate and the trip fee (on-site visits or once a technician is assigned). The AI only picks part ids and minutes.

@@ -5,31 +5,32 @@
 - [x] **Phase 0: Repo setup.** Git, `.gitignore`, `.env.example`, private GitHub repo, README and docs.
 - [x] **Phase 1: Skeleton, data model, demo data.** FastAPI app, SQLModel tables, FTS5, demo company data and manuals, importer core used for seeding, public product page, username/password login, company dashboard.
 - [ ] **Phase 2: Import and catalog.** Import page with preview and errors; sites, assets, products, known issues pages.
-- [ ] **Phase 3: Intake and brief.** Intake form (dictation, photo, service mode), retrieval, brief generation (mock, then live), brief view with costs, progress steps, repeat-failure banner, unknown-model handling.
-- [ ] **Phase 4: Review, technician, close.** Self-fix approval flow, assignment, mobile technician view, questions checklist, Refine, chat, close-ticket form.
-- [ ] **Phase 5: Adaptability.** Fix variants with Haiku matching, trends, asset pages, history page, dispatches-avoided counter, CSV export.
+- [x] **Phase 3: Intake and brief.** Intake form (dictation, photo, service mode), retrieval, brief generation (mock from company data; live via Claude, untested without a key), brief view with costs, progress steps, repeat-failure banner, unknown-model handling.
+- [x] **Phase 4: Review, technician, close.** Self-fix approval flow, assignment, mobile technician view, questions checklist, Refine, chat, close-ticket form.
+- [x] **Phase 5: Adaptability.** Fix variants with Haiku matching, trends, asset pages, history page, dispatches-avoided counter, CSV export.
 - [ ] **Phase 6: Deploy and polish.** Render deploy, live-call fallback, demo rehearsal.
 - [ ] Stretch: second demo company (laptop repair shop); cross-model insights.
 
 ## What works now
 
-- `uvicorn app.main:app --reload` starts the app. On first start it creates `data/techmind.db` and loads the demo company:
-  - 8 stores, 58 units of equipment, 7 models (beverage, fryer, griddle, ice machine, walk-in, HVAC), 34 parts
-  - 31 known issues, 32 fix variants
-  - manual sections and 121 past tickets, both indexed for search
-- `/` is a public TechMind product page (how it works, features, any-industry, setup) with a **Log in** button. No company data is shown there.
-- Username/password login. Demo accounts are `manager`, `ana`, and `luis`, with the password from `DEMO_PASSWORD`. The cookie is signed so it can't be forged; wrong passwords get a generic error. Log out returns to the product page.
-- `/app` dashboard shows the company's counts in its own words ("Stores", "Equipment", "Fixed by store staff"), equipment by category, and the company profile (collapsed).
-- The importer validates every file and reports errors with row numbers. It is used for seeding now and gets its own upload page in Phase 2.
-- The demo history generator plus checks for every planned pattern (`pytest` runs them).
-- On startup, the app checks that the database file matches the current tables. If it's from an older version, startup stops with a message saying to delete it, instead of pages failing with "Internal Server Error".
-- 21 tests pass.
+- Log in as `manager`, `ana` or `luis` (password from `DEMO_PASSWORD`). The demo company is seeded on first start.
+- **Board** (managers): reports grouped into Needs a decision, Store staff trying a fix, Technician on it, Recently closed; plus rising issues, fixes that changed, and trips avoided.
+- **New report**: store, then equipment at that store with its recent tickets; dictation (Chrome/Edge); photo; phone-first or on-site.
+- **Brief**: "Preparing" steps, then summary, safety, repeat-failure warning, ranked causes (evidence, sources, confirm steps, recommended fix, parts with stock, cost), questions for the reporter, safe self-fix with savings. Every version is stored.
+- **Decisions**: approve a self-fix and record the outcome (a failure re-ranks the brief; success closes the ticket with no trip), dispatch or reassign, per-ticket chat (refreshes every 4 seconds), event log.
+- **Technician phone view**: My jobs, the brief, Yes/No/Not sure answers, Refine diagnosis, bottom bar with Close job.
+- **Close job**: what was wrong (brief's top cause preselected, or a new issue), which fix (variants with success rates, or describe a new one), parts, minutes, fixed or not. This updates frequency, trends and the recommended fix immediately.
+- **Insights**, **History**, unit pages, CSV export of ticket history in the import format.
+- 25 tests pass, including the full demo flow.
 
 ## Next
 
-- Phase 2: the Import page (upload, preview with row counts and errors, load) and the catalog pages.
+- Phase 2: the Import page (upload, preview with row counts and errors, load) and catalog pages.
+- Try live mode with an API key and tune `app/ai/prompts.py`.
+- Phase 6: deploy and rehearse.
 
 ## Known issues
 
 - The demo patterns (rising/fading, repeat failure) are computed relative to 2026-10-24. If the demo runs much later, set `AS_OF_DATE=2026-10-24` in `.env`.
-- Tailwind is loaded from its CDN "play" build, which logs a "not for production" console warning. This is expected (the spec asks for no build step).
+- Live mode hasn't been run yet (no API key). Mock mode is fully working.
+- Mock safety warnings match on words, so they occasionally include a loosely related hazard; live mode judges relevance properly.

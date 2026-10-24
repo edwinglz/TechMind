@@ -286,9 +286,11 @@ def close_form(request: Request, ticket_id: int, cur: Current = Depends(require_
     ticket = _ticket_or_404(session, cur, ticket_id)
     ctx = _body_context(session, cur, ticket)
     product_ids = [ticket.product_id] if ticket.product_id else None
-    stats = sorted(issue_stats(session, cur.company.id, product_ids).values(), key=lambda s: s.issue.title)
     brief = ctx["brief"]
     top_ref = brief.data["probable_causes"][0]["issue_id"] if brief and brief.data["probable_causes"] else None
+    # The brief's top cause first, then the most common issues.
+    stats = sorted(issue_stats(session, cur.company.id, product_ids).values(),
+                   key=lambda s: (s.issue.ref != top_ref, -s.last90, s.issue.title))
     parts = session.exec(select(Part).where(Part.company_id == cur.company.id)).all()
     if ticket.product_id:
         ref = ctx["product"].ref
