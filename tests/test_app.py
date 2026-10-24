@@ -1,4 +1,4 @@
-"""End-to-end: public page, login with username/password, and the app dashboard."""
+"""End-to-end: front page, login with username/password, and the manager board."""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,10 +19,10 @@ def _login(client, username, password=PASSWORD):
     return client.post("/login", data={"username": username, "password": password}, follow_redirects=False)
 
 
-def test_landing_page_is_public_and_company_neutral(client):
+def test_front_page_is_public_and_company_neutral(client):
     page = client.get("/").text
-    assert "Know what's broken before anyone shows up" in page
-    assert 'href="/login"' in page
+    assert "Know what's broken before the truck rolls" in page
+    assert 'action="/login"' in page
     # The product page must not expose any customer's data.
     assert "Kestrel" not in page and "Store #" not in page
 
@@ -41,21 +41,20 @@ def test_wrong_password_is_rejected(client):
     assert _login(client, "nobody").status_code == 401
 
 
-def test_manager_login_shows_company_dashboard(client):
+def test_manager_login_shows_service_board(client):
     response = _login(client, "Manager ")  # usernames ignore case and surrounding spaces
     assert response.status_code == 303 and response.headers["location"] == "/app"
     page = client.get("/app").text
     assert "Kestrel Burger Co." in page
-    assert "Stores" in page and "Equipment" in page and "Fixed by store staff" in page
-    for category in ("Beverage dispenser", "Fryer", "Ice machine", "Refrigeration", "HVAC"):
-        assert category in page
-    # Logged-in visitors get a shortcut back into the app from the product page.
-    assert "Open TechMind" in client.get("/").text
+    assert "Service board" in page and "Needs a decision" in page and "Store staff trying a fix" in page
+    # Logged-in visitors skip the front page.
+    assert client.get("/", follow_redirects=False).headers["location"] == "/app"
 
 
 def test_technician_login(client):
     _login(client, "ana")
-    assert "Tech: Ana" in client.get("/app").text
+    page = client.get("/app").text
+    assert "Tech: Ana" in page and "My jobs" in page
 
 
 def test_logout(client):

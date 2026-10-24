@@ -1,0 +1,80 @@
+{% extends "app_base.html" %}
+{% block title %}Close {{ ticket.ref }} · TechMind{% endblock %}
+{% block content %}
+<div style="max-width:760px">
+  <div class="page-head">
+    <div>
+      <p class="small muted"><a href="/app/tickets/{{ ticket.id }}">{{ ticket.ref }}</a> · {{ site.name }}{% if product %} · {{ product.model_name }}{% endif %}</p>
+      <h1>Close the job</h1>
+      <p class="muted">What you record here teaches TechMind. The next brief for this {{ L.asset }} will use it.</p>
+    </div>
+  </div>
+
+  <form method="post" class="sheet close-form">
+    <div class="sheet-body stack" style="--gap:1.5rem">
+      <fieldset>
+        <legend>What was actually wrong?</legend>
+        <div class="radio-list">
+          {% for s in stats %}
+          <label><input type="radio" name="issue" value="{{ s.issue.id }}" {% if s.issue.ref == top_ref %}checked{% endif %} required>
+            <span>{{ s.issue.title }}{% if s.issue.ref == top_ref %} <span class="chip plain" style="margin-left:0.3rem">Brief's top cause</span>{% endif %}
+              <span class="sub" style="display:block">{{ s.last90 }} in the last 90 days</span></span></label>
+          {% endfor %}
+          {% if product %}
+          <label><input type="radio" name="issue" value="new">
+            <span>Something not on this list
+              <input type="text" name="new_issue_title" placeholder="Name the problem, e.g. “Cracked carbonator tank”" style="margin-top:0.4rem"></span></label>
+          {% endif %}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Which fix did you use?</legend>
+        {% for s in stats %}
+        <div class="radio-list variant-group" data-issue="{{ s.issue.id }}" hidden>
+          {% for v in s.variants %}
+          <label><input type="radio" name="variant_{{ s.issue.id }}" value="{{ v.variant.id }}" {% if loop.first %}checked{% endif %}>
+            <span>{% if v is sameas s.recommended %}<strong>Recommended fix</strong>{% else %}{{ "Fix from your manual" if v.variant.source == "import" else "Fix a technician found" }}{% endif %}
+              {% if v.attempts %}<span class="sub">· worked {{ v.successes }} of {{ v.attempts }} times</span>{% endif %}
+              <span class="sub" style="display:block">{{ v.variant.steps | join("; ") }}</span></span></label>
+          {% endfor %}
+          <label><input type="radio" name="variant_{{ s.issue.id }}" value="other"><span>Something else, I'll describe it below</span></label>
+        </div>
+        {% endfor %}
+        <label class="field" style="margin-top:0.6rem"><span class="small">Describe your fix <span class="faint">(only if it's something else or a new problem; one step per line)</span></span>
+          <textarea name="fix_description" rows="4" placeholder="Shut off water and CO2&#10;Cleaned the inlet strainer&#10;Replaced the check valve"></textarea></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Parts used</legend>
+        <div class="radio-list" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))">
+          {% for p in parts %}
+          <label><input type="checkbox" name="parts" value="{{ p.ref }}"><span>{{ p.name }} <span class="sub" style="display:block">{{ p.ref }} · {{ p.unit_price | money }}</span></span></label>
+          {% else %}<p class="muted small">No parts listed for this model.</p>{% endfor %}
+        </div>
+      </fieldset>
+
+      <div class="two">
+        <label class="field"><span>Time on the job (minutes)</span><input type="number" name="minutes" min="0" step="5" value="60" required></label>
+        <fieldset><legend>Is it fixed?</legend>
+          <div class="choice"><label><input type="radio" name="resolved" value="yes" checked><span>Yes, working</span></label>
+            <label><input type="radio" name="resolved" value="no"><span>No, needs follow-up</span></label></div></fieldset>
+      </div>
+
+      <div class="row"><button class="btn tag">Close job</button><a href="/app/tickets/{{ ticket.id }}" class="btn secondary">Back to ticket</a></div>
+    </div>
+  </form>
+</div>
+<script>
+  // Show only the fix options for the problem picked above.
+  (function () {
+    const groups = document.querySelectorAll(".variant-group");
+    function sync() {
+      const picked = document.querySelector('input[name="issue"]:checked');
+      groups.forEach(g => { g.hidden = !picked || g.dataset.issue !== picked.value; });
+    }
+    document.querySelectorAll('input[name="issue"]').forEach(r => r.addEventListener("change", sync));
+    sync();
+  })();
+</script>
+{% endblock %}

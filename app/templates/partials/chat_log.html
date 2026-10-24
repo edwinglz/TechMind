@@ -1,0 +1,12 @@
+{% if messages %}
+<ul class="chat-log">
+  {% for m in messages %}
+  <li class="msg {{ 'mine' if m.actor_user_id == user.id }}">
+    <div class="who">{{ users[m.actor_user_id].name if m.actor_user_id in users else "Someone" }} · {{ m.created_at | age }}</div>
+    {{ m.payload.text }}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="small muted">No messages yet.</p>
+{% endif %}

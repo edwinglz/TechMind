@@ -65,3 +65,57 @@ def render(request: Request, name: str, user: User | None = None, company: Compa
         request, name, {"user": user, "company": company, "L": labels_for(company), **context},
         status_code=status_code,
     )
+
+
+# ---------- ticket display helpers ----------
+
+def status_info(ticket, labels: dict) -> dict:
+    """How a ticket's status is shown: words, chip style, and the tag's band color."""
+    from app.models import TicketStatus
+
+    if ticket.status in (TicketStatus.NEW, TicketStatus.BRIEFED):
+        return {"label": "Needs a decision", "chip": "", "band": "band-new", "lane": "decide"}
+    if ticket.status == TicketStatus.AWAITING_SELF_FIX:
+        return {"label": f"{_cap(labels['reporter'])} trying a fix", "chip": "staff", "band": "band-staff", "lane": "staff"}
+    if ticket.status == TicketStatus.ASSIGNED:
+        return {"label": "Technician on it", "chip": "tech", "band": "band-tech", "lane": "tech"}
+    if ticket.resolved_by_reporter:
+        return {"label": f"Fixed by {labels['reporter']}", "chip": "closed", "band": "band-closed", "lane": "closed"}
+    if ticket.resolved is False:
+        return {"label": "Closed, not fixed", "chip": "danger", "band": "band-danger", "lane": "closed"}
+    return {"label": "Closed", "chip": "closed", "band": "band-closed", "lane": "closed"}
+
+
+def _age(when) -> str:
+    from app.services.tickets import age_text
+
+    return age_text(when) if when else ""
+
+
+def _minutes(value) -> str:
+    value = int(value or 0)
+    if value < 60:
+        return f"{value} min"
+    hours, rest = divmod(value, 60)
+    return f"{hours} h {rest} min" if rest else f"{hours} h"
+
+
+def _clock(when) -> str:
+    """Event time in the server's local time zone: "14:05" today, "Oct 21" before that."""
+    from datetime import datetime, timezone
+
+    local = when.replace(tzinfo=timezone.utc).astimezone()
+    return local.strftime("%H:%M") if local.date() == datetime.now().astimezone().date() else local.strftime("%b %d")
+
+
+def midcase(name: str) -> str:
+    """Lowercase a name for use mid-sentence, but keep acronyms like CO2 or HVAC."""
+    first = (name or "").split(" ")[0]
+    return name if first[:2].isupper() else name[:1].lower() + name[1:]
+
+
+templates.env.filters["midcase"] = midcase
+templates.env.filters["clock"] = _clock
+templates.env.filters["age"] = _age
+templates.env.filters["minutes"] = _minutes
+templates.env.globals["status_info"] = status_info

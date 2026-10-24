@@ -4,7 +4,7 @@ Start locally with:  uvicorn app.main:app --reload
 On startup it creates any missing tables and seeds the demo company if the
 database is empty.
 
-URL layout: "/" is the public product page, "/login" the login form, and
+URL layout: "/" and "/login" show the login page with a short product pitch;
 everything under "/app" is the product itself (login required).
 """
 
@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.db import init_db
-from app.routes import dashboard, login, public
+from app.routes import insights, login, public, tickets
 from app.seed import seed_if_empty
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -35,6 +35,9 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="TechMind", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
+settings.upload_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")  # ticket photos
 app.include_router(public.router)
 app.include_router(login.router)
-app.include_router(dashboard.router)
+app.include_router(tickets.router)
+app.include_router(insights.router)

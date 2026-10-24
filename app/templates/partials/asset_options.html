@@ -1,0 +1,4 @@
+<option value="">{% if rows %}Not sure which one{% else %}Choose the {{ L.site }} first{% endif %}</option>
+{% for asset, product in rows %}
+<option value="{{ asset.id }}">{{ product.model_name }} ({{ asset.ref }})</option>
+{% endfor %}

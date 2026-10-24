@@ -1,16 +1,18 @@
-{#- Bare page shell shared by every page: <head>, CDN scripts, body styling. -#}
+{#- Bare page shell shared by every page. Fonts, styles and htmx are bundled locally (no CDN). -#}
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}TechMind{% endblock %}</title>
   <meta name="description" content="TechMind turns vague equipment problem reports into diagnostic briefs before anyone is dispatched.">
-  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpath d='M9 3h14v20H9l-6-6V9z' fill='%23f2b91f'/%3E%3Ccircle cx='8.5' cy='13' r='2.3' fill='%231b2730'/%3E%3C/svg%3E">
+  <link rel="preload" href="/static/fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/fonts/barlow-condensed-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/vendor/htmx.min.js" defer></script>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+<body>
   {% block body %}{% endblock %}
 </body>
 </html>

@@ -2,31 +2,33 @@
 {% from "macros.html" import logo %}
 {% block title %}Log in · TechMind{% endblock %}
 {% block body %}
-<div class="min-h-screen flex flex-col items-center justify-center px-4 py-12">
-  <a href="/" class="flex items-center gap-2">
-    {{ logo("h-10 w-10") }}
-    <span class="text-xl font-semibold">TechMind</span>
-  </a>
-
-  <form method="post" action="/login" class="mt-8 w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-    <h1 class="text-lg font-semibold">Log in to your workspace</h1>
-
-    {% if error %}
-    <p class="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{{ error }}</p>
-    {% endif %}
-
-    <label class="mt-4 block text-sm font-medium" for="username">Username</label>
-    <input id="username" name="username" value="{{ username or '' }}" autocomplete="username" required autofocus
-           autocapitalize="none" spellcheck="false"
-           class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-
-    <label class="mt-4 block text-sm font-medium" for="password">Password</label>
-    <input id="password" name="password" type="password" autocomplete="current-password" required
-           class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-
-    <button class="mt-6 w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700">Log in</button>
-  </form>
-
-  <a href="/" class="mt-6 text-sm text-slate-500 hover:underline">← Back to TechMind</a>
+<div class="auth-wrap">
+  <section class="auth-brand">
+    <a href="/" class="wordmark">{{ logo(30) }}TechMind</a>
+    <div>
+      <h1>Know what's broken before the truck rolls.</h1>
+      <p>Turn a two-line problem report into a diagnosis: likely causes from your own manuals and repair history, the questions to ask on the phone, a fix the site can safely try first, and what it will cost.</p>
+      <div class="demo-tag">
+        <div class="tag-card band-new">
+          <div class="spread"><span class="tag-ref">T-0122</span><span class="small faint">just now</span></div>
+          <div class="tag-title">“Coke and Sprite are coming out flat, kind of watery”</div>
+          <div class="tag-meta"><span>Likely: <strong>Carbonator pump failure</strong></span><span>Ask: is the pump humming nonstop?</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="small" style="color:#8fa0a8">Works for any equipment a company maintains. Load your manuals, parts and ticket history, and it learns from every job you close.</p>
+  </section>
+  <section class="auth-form">
+    <form method="post" action="/login" class="stack">
+      <h2>Log in</h2>
+      {% if error %}<div class="error-box" role="alert">{{ error }}</div>{% endif %}
+      <label class="field"><span>Username</span>
+        <input type="text" name="username" value="{{ username or '' }}" autocomplete="username" autocapitalize="none" required autofocus></label>
+      <label class="field"><span>Password</span>
+        <input type="password" name="password" autocomplete="current-password" required></label>
+      <button class="btn block">Log in</button>
+      <p class="small muted">Demo accounts: <strong>manager</strong> (service manager), <strong>ana</strong> and <strong>luis</strong> (technicians).</p>
+    </form>
+  </section>
 </div>
 {% endblock %}

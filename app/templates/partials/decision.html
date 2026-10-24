@@ -1,0 +1,70 @@
+{% set fix = brief.data.reporter_self_fix %}
+<section class="sheet decision">
+  <div class="sheet-body stack">
+  {% if ticket.status in ("new", "briefed") %}
+    {% if is_manager %}
+      <h2>What happens next?</h2>
+      {% if fix.applicable %}
+      <div class="stack" style="--gap:0.5rem">
+        <h3>Try a fix by phone first</h3>
+        <p class="small muted">Safe steps the {{ L.reporter }} can do while you're on the call:</p>
+        <ol class="selffix-steps">{% for s in fix.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+        {% if fix.risk_note %}<p class="small muted">{{ fix.risk_note }}</p>{% endif %}
+        {% if fix.savings %}<p class="savings">Saves about {{ fix.savings | money }} if it works</p>{% endif %}
+        <button class="btn tag block" hx-post="/app/tickets/{{ ticket.id }}/self-fix" hx-target="#ticket-body" hx-swap="outerHTML">Approve, I'll call the {{ L.site }}</button>
+      </div>
+      <hr class="rule">
+      {% endif %}
+      <form class="stack" style="--gap:0.5rem" hx-post="/app/tickets/{{ ticket.id }}/assign" hx-target="#ticket-body" hx-swap="outerHTML">
+        <h3>Dispatch a technician</h3>
+        <label class="sr-only" for="tech">Technician</label>
+        <select name="technician_id" id="tech">{% for t in technicians %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}</select>
+        <button class="btn {{ 'secondary' if fix.applicable else '' }} block">Dispatch with this brief</button>
+      </form>
+    {% else %}
+      <h2>Waiting on the manager</h2><p class="muted">This job hasn't been dispatched yet.</p>
+    {% endif %}
+
+  {% elif ticket.status == "awaiting_self_fix" %}
+    <h2>{{ L.reporter | cap }} trying the fix</h2>
+    <ol class="selffix-steps">{% for s in fix.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+    {% if is_manager %}
+    <form class="stack" style="--gap:0.5rem" hx-post="/app/tickets/{{ ticket.id }}/self-fix/outcome" hx-target="#ticket-body" hx-swap="outerHTML">
+      <label class="field"><span class="small">What did they find? <span class="faint">(optional)</span></span>
+        <input type="text" name="note" placeholder="“Tank was full, valve open”"></label>
+      <div class="two" style="gap:0.5rem">
+        <button class="btn good" name="resolved" value="yes">It worked, close it</button>
+        <button class="btn bad" name="resolved" value="no">Didn't work</button>
+      </div>
+      <p class="small muted">If it didn't work, the brief re-ranks the causes right away so you can dispatch.</p>
+    </form>
+    {% endif %}
+
+  {% elif ticket.status == "assigned" %}
+    <h2>{{ "Your job" if not is_manager else "Technician on it" }}</h2>
+    {% if is_manager %}
+      <p class="muted">{{ tech.name }} has the brief. Use the chat if they need anything.</p>
+      <form class="row" hx-post="/app/tickets/{{ ticket.id }}/assign" hx-target="#ticket-body" hx-swap="outerHTML">
+        <label class="sr-only" for="tech2">Reassign to</label>
+        <select name="technician_id" id="tech2" style="flex:1">{% for t in technicians %}<option value="{{ t.id }}" {% if t.id == ticket.assigned_user_id %}selected{% endif %}>{{ t.name }}</option>{% endfor %}</select>
+        <button class="btn secondary small">Reassign</button>
+      </form>
+      <a class="btn secondary block" href="/app/tickets/{{ ticket.id }}/close">Close on their behalf</a>
+    {% else %}
+      <p class="muted">Work through the questions with the {{ L.reporter }}, refine if needed, then close the job with what actually fixed it.</p>
+      <a class="btn tag block" href="/app/tickets/{{ ticket.id }}/close">Close job</a>
+    {% endif %}
+
+  {% else %}
+    <h2>Closed</h2>
+    {% set issue_title = (events | selectattr("type", "equalto", "closed") | list | last).payload.issue if events | selectattr("type", "equalto", "closed") | list else None %}
+    <dl class="stack small" style="--gap:0.4rem; margin:0">
+      {% if issue_title %}<div><dt class="faint">What was wrong</dt><dd style="margin:0; font-weight:600">{{ issue_title }}</dd></div>{% endif %}
+      <div><dt class="faint">Result</dt><dd style="margin:0">{% if ticket.resolved_by_reporter %}Fixed by the {{ L.reporter }}, no trip needed{% elif ticket.resolved %}Fixed{% else %}Not fixed{% endif %}{% if ticket.minutes %} in {{ ticket.minutes | minutes }}{% endif %}</dd></div>
+      {% if ticket.fix_description %}<div><dt class="faint">Fix used</dt><dd style="margin:0">{{ ticket.fix_description.split("|") | join("; ") }}</dd></div>{% endif %}
+      {% if ticket.used_recommended_fix is not none and not ticket.resolved_by_reporter %}<div><dt class="faint">Recommended fix</dt><dd style="margin:0">{{ "Used" if ticket.used_recommended_fix else "A different fix was used. It now counts toward that fix's success rate." }}</dd></div>{% endif %}
+    </dl>
+    <a class="small" href="/app/insights">See how this changed the insights</a>
+  {% endif %}
+  </div>
+</section>

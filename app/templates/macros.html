@@ -1,7 +1,37 @@
-{% macro logo(size="h-8 w-8") -%}
-<span class="inline-flex {{ size }} items-center justify-center rounded-lg bg-indigo-600 text-white">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-1/2 w-1/2" aria-hidden="true">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4 2.5-2.5z"/>
-  </svg>
+{% macro logo(size=26) -%}
+<svg class="mark" width="{{ size }}" height="{{ size }}" viewBox="0 0 26 26" aria-hidden="true">
+  <path d="M9 3h14v20H9l-6-6V9z" fill="#f2b91f"/><circle cx="8.5" cy="13" r="2.3" fill="#1b2730"/>
+  <path d="M12.5 10h7M12.5 13h7M12.5 16h4.5" stroke="#1b2730" stroke-width="1.6" stroke-linecap="round"/>
+</svg>
+{%- endmacro %}
+
+{#- A ticket shown as a service tag. `c` comes from routes/tickets.py::_card. -#}
+{% macro tag_card(c, L, show_status=False) -%}
+{% set st = status_info(c.t, L) %}
+<a class="tag-card {{ 'band-danger' if c.repeat and st.lane != 'closed' else st.band }}" href="/app/tickets/{{ c.t.id }}">
+  <div class="spread">
+    <span class="tag-ref">{{ c.t.ref }}</span>
+    <span class="small faint">{{ c.t.created_at | age }}</span>
+  </div>
+  <div class="tag-title">{{ c.t.description }}</div>
+  <div class="tag-meta">
+    <span>{{ c.site.name }}</span>
+    {% if c.product %}<span>{{ c.product.model_name }}</span>{% else %}<span>{{ L.asset | cap }} not identified</span>{% endif %}
+  </div>
+  {% if c.top or c.tech or c.repeat or show_status %}
+  <div class="tag-meta">
+    {% if show_status %}<span class="chip {{ st.chip }}">{{ st.label }}</span>{% endif %}
+    {% if c.top %}<span>Likely: <strong>{{ c.top }}</strong></span>{% endif %}
+    {% if c.tech %}<span>{{ c.tech.name }}</span>{% endif %}
+    {% if c.repeat %}<span class="chip danger plain">Repeat failure</span>{% endif %}
+  </div>
+  {% endif %}
+</a>
+{%- endmacro %}
+
+{% macro gauge(level) -%}
+<span class="gauge {{ level }}" title="{{ level | cap }} likelihood">
+  <span class="segs"><i></i><i></i><i></i></span>
+  <span class="lbl">{{ level | cap }}</span>
 </span>
 {%- endmacro %}

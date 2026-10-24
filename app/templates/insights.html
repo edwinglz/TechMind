@@ -1,0 +1,75 @@
+{% extends "app_base.html" %}
+{% block title %}Insights · TechMind{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Insights</h1>
+    <p class="muted">What {{ total }} tickets say about your {{ L.assets }}. Updated every time a job closes.</p>
+  </div>
+  <a class="btn secondary" href="/app/export/ticket_history.csv">Export ticket history (CSV)</a>
+</div>
+
+<div class="signals" style="margin-top:0">
+  <section class="sheet"><div class="sheet-body">
+    <h2>Trips avoided</h2>
+    <div class="big-number" style="margin-top:0.5rem">{{ avoided }}</div>
+    <p class="muted">fixed by {{ L.reporters }} over the phone, about <strong>{{ saved | money }}</strong> saved.</p>
+  </div></section>
+  <section class="sheet"><div class="sheet-body">
+    <h2>Brief accuracy</h2>
+    {% if checked %}
+    <div class="big-number" style="margin-top:0.5rem">{{ hits }} of {{ checked }}</div>
+    <p class="muted">jobs where the brief's top cause was what the technician found.</p>
+    {% else %}
+    <p class="muted" style="margin-top:0.5rem">Shows how often the brief's top cause was right, once jobs created here are closed.</p>
+    {% endif %}
+  </div></section>
+  <section class="sheet"><div class="sheet-body">
+    <h2>Repeat failures</h2>
+    <ul class="signal-list" style="margin-top:0.4rem">
+      {% for r in repeat %}
+      <li><a href="/app/assets/{{ r.asset.id }}">{{ r.product.model_name }}</a><span class="small muted">{{ r.site.name }} · {{ r.n }} in 60 days</span></li>
+      {% else %}<li class="muted">No unit has 3 or more tickets in 60 days.</li>{% endfor %}
+    </ul>
+  </div></section>
+</div>
+
+<div class="two" style="margin-top:1rem">
+  <section class="sheet"><div class="sheet-head"><h2>Rising</h2><p class="small muted">More tickets in the last 30 days than the 30 before.</p></div>
+    <div class="sheet-body"><ul class="signal-list">
+      {% for s in rising %}<li><span>{{ s.issue.title }}</span><span class="trend rising">{{ s.prior30 }} → {{ s.last30 }}</span></li>
+      {% else %}<li class="muted">Nothing rising.</li>{% endfor %}
+    </ul></div></section>
+  <section class="sheet"><div class="sheet-head"><h2>Fading</h2><p class="small muted">Fewer tickets than the month before.</p></div>
+    <div class="sheet-body"><ul class="signal-list">
+      {% for s in fading %}<li><span>{{ s.issue.title }}</span><span class="trend fading">{{ s.prior30 }} → {{ s.last30 }}</span></li>
+      {% else %}<li class="muted">Nothing fading.</li>{% endfor %}
+    </ul></div></section>
+</div>
+
+<section class="sheet" style="margin-top:1rem">
+  <div class="sheet-head"><h2>Known issues and the fix that works best</h2>
+    <p class="small muted">The recommended fix is the one with the best success rate after at least 3 jobs. When a technician's fix overtakes the manual's, briefs switch to it.</p></div>
+  <div class="sheet-body table-wrap">
+    <table class="data">
+      <thead><tr><th>Issue</th><th>Last 90 days</th><th>Trend</th><th>Recommended fix</th><th>Success</th></tr></thead>
+      <tbody>
+        {% for p in products %}{% if grouped.get(p.id) %}
+        <tr class="group"><td colspan="5">{{ p.model_name }} <span class="small faint" style="font-family:var(--body)">{{ p.category }}</span></td></tr>
+        {% for s in grouped[p.id] %}
+        <tr>
+          <td>{{ s.issue.title }}{% if s.issue.reporter_fixable %}<div class="small muted">{{ L.reporters | cap }} can fix</div>{% endif %}</td>
+          <td>{{ s.last90 }}</td>
+          <td>{% if s.trend %}<span class="trend {{ s.trend }}">{{ s.trend | cap }}</span>{% else %}<span class="faint">Steady</span>{% endif %}</td>
+          <td class="small">{% if s.recommended %}{{ s.recommended.variant.steps | join("; ") }}
+            {% if s.recommended_changed %}<br><span class="changed">Technician fix, now outperforming the manual</span>{% endif %}{% endif %}</td>
+          <td class="nowrap">{% if s.recommended and s.recommended.attempts %}<span class="rate">{{ (100 * s.recommended.success_rate) | round | int }}%</span>
+            <span class="small faint">of {{ s.recommended.attempts }}</span>{% else %}<span class="faint">—</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+        {% endif %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

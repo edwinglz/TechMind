@@ -1,0 +1,10 @@
+<section class="sheet preparing" hx-post="/app/tickets/{{ ticket.id }}/brief" hx-trigger="load" hx-target="#ticket-body" hx-swap="outerHTML">
+  <h2>Preparing the brief</h2>
+  <ul class="prep-steps">
+    <li>Reading the {{ product.model_name if product else "manuals for every " ~ L.asset ~ " at this " ~ L.site }}{{ " manual" if product }}</li>
+    <li>Checking known issues and what fixed them</li>
+    <li>Searching past tickets for similar reports</li>
+    {% if asset %}<li>Looking at this unit's own history</li>{% endif %}
+    {% if ticket.photo_path %}<li>Looking at the photo</li>{% else %}<li>Writing questions for the {{ L.reporter }}</li>{% endif %}
+  </ul>
+</section>

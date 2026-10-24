@@ -1,0 +1,141 @@
+{% from "macros.html" import gauge %}
+<div id="ticket-body">
+  {# ---------- the tag header ---------- #}
+  <header class="ticket-head {{ 'band-danger' if brief and brief.data.context.repeat_failure and ticket.status != 'closed' else status.band }}">
+    <div class="spread">
+      <span class="ref">{{ ticket.ref }} · opened {{ ticket.created_at | age }}</span>
+      <span class="chip {{ status.chip }}">{{ status.label }}</span>
+    </div>
+    <h1>{% if product %}{{ product.model_name }}{% else %}{{ L.asset | cap }} not identified{% endif %}</h1>
+    <div class="meta">
+      <span>{{ site.name }}</span>
+      {% if site.address %}<span>{{ site.address }}</span>{% endif %}
+      <span>{{ "Phone guidance first" if ticket.service_mode == "remote" else "On-site visit" }}</span>
+      {% if tech %}<span>Technician: {{ tech.name }}</span>{% endif %}
+    </div>
+  </header>
+
+  <div class="ticket-grid">
+    {# ---------- main column: report and brief ---------- #}
+    <div class="stack" style="--gap:1rem">
+      <section class="sheet">
+        <div class="sheet-body stack">
+          <div class="report">
+            <div class="stack" style="--gap:0.6rem">
+              <p class="report-quote">“{{ ticket.description }}”</p>
+              <p class="small muted">Reported by {{ L.reporter }} at {{ site.name }}</p>
+            </div>
+            {% if ticket.photo_path %}<a class="photo" href="/uploads/{{ ticket.photo_path.replace('\\', '/').split('/')[-1] }}" target="_blank"><img src="/uploads/{{ ticket.photo_path.replace('\\', '/').split('/')[-1] }}" alt="Photo from the {{ L.reporter }}"></a>{% endif %}
+          </div>
+          {% if asset %}
+          <dl class="plate">
+            <div><dt>Unit</dt><dd><a href="/app/assets/{{ asset.id }}">{{ asset.ref }}</a></dd></div>
+            <div><dt>Model</dt><dd>{{ product.ref }}</dd></div>
+            <div><dt>Serial</dt><dd>{{ asset.serial or "—" }}</dd></div>
+            <div><dt>Installed</dt><dd>{{ asset.install_date.strftime("%b %Y") if asset.install_date else "—" }}</dd></div>
+          </dl>
+          {% endif %}
+        </div>
+      </section>
+
+      {% if not brief %}
+        {% include "partials/preparing.html" %}
+      {% else %}
+        {% set d = brief.data %}
+        <div class="stack brief-arrive" style="--gap:1rem">
+          {% if brief.is_fallback %}
+          <div class="banner note" role="status"><span><strong>Live AI didn't answer</strong>, so this brief comes from your own data only. Try "Refine diagnosis" again in a moment.</span></div>
+          {% endif %}
+          {% if d.context.repeat_failure and ticket.status != "closed" %}
+          <div class="banner warn"><span><strong>Repeat failure.</strong> This unit has {{ d.context.repeat_count }} tickets in the last 60 days, counting this one. Consider a deeper inspection or replacement while the technician is there.</span></div>
+          {% endif %}
+          {% for f in self_fix_tries if not f.payload.resolved %}
+          <div class="banner note"><span><strong>{{ L.reporters | cap }} already tried:</strong> {{ f.payload.steps | join("; ") }}. It didn't fix it{% if f.payload.note %} ({{ f.payload.note }}){% endif %}, so those causes were ranked lower.</span></div>
+          {% endfor %}
+
+          <section class="sheet">
+            <div class="sheet-body stack" style="--gap:0.6rem">
+              <div class="spread"><h2>Diagnosis</h2>
+                <span class="small faint">Brief v{{ brief.version }} · {{ "Claude" if brief.ai_mode == "live" else "from your data" }} · {{ brief.created_at | age }}</span></div>
+              <p style="font-size:1.08rem">{{ d.summary }}</p>
+              <p class="muted">{{ d.symptom_interpretation }}</p>
+              {% if d.image_findings %}<p><strong>Photo:</strong> {{ d.image_findings | join(" ") }}</p>{% endif %}
+              {% if d.safety_warnings %}
+              <div class="banner yellow"><div><strong>Safety</strong>
+                <ul style="margin-top:0.25rem">{% for w in d.safety_warnings %}<li>{{ w }}</li>{% endfor %}</ul></div></div>
+              {% endif %}
+            </div>
+          </section>
+
+          <section class="sheet">
+            <div class="sheet-head spread"><h2>Probable causes</h2><span class="small faint">Most likely first. Open one for steps, parts and cost.</span></div>
+            <div class="sheet-body">
+              <ol class="causes">
+                {% for c in d.probable_causes %}
+                <li class="cause">
+                  <details {% if loop.first %}open{% endif %}>
+                    <summary>
+                      <span class="cause-n">{{ loop.index }}</span>
+                      <span><span class="cause-title">{{ c.cause }}</span>
+                        <span class="cause-sub" style="display:block">{{ c.estimated_minutes | minutes }} · about {{ c.cost.total | money }}{% if c.cost.parts %} · {{ c.cost.parts | length }} part{{ "s" if c.cost.parts | length > 1 }}{% endif %}</span></span>
+                      {{ gauge(c.likelihood) }}
+                    </summary>
+                    <div class="cause-body">
+                      <p>{{ c.evidence }}</p>
+                      {% if c.sources %}<div class="sources">{% for s in c.sources %}<span class="source" title="{{ s.type | replace('_', ' ') }}">{{ s.ref }}</span>{% endfor %}</div>{% endif %}
+                      <div class="cause-cols">
+                        {% if c.confirm_steps %}<div><h3>Confirm it</h3><ul class="steps">{% for s in c.confirm_steps %}<li>{{ s }}</li>{% endfor %}</ul></div>{% endif %}
+                        <div><h3>Fix it</h3><ol class="steps">{% for s in c.fix_steps %}<li>{{ s }}</li>{% endfor %}</ol></div>
+                      </div>
+                      <div style="margin-top:1rem; max-width:420px">
+                        <h3>Estimate</h3>
+                        <table class="cost-table">
+                          {% for p in c.cost.parts %}
+                          <tr><td>{{ p.name }} <span class="small faint">{{ p.ref }}</span>
+                            <span class="stock {{ 'out' if not p.in_stock }}">{{ "in stock" if p.in_stock else "not in stock" }}</span></td><td>{{ p.price | money }}</td></tr>
+                          {% endfor %}
+                          <tr><td>Labor, {{ c.estimated_minutes | minutes }}</td><td>{{ c.cost.labor | money }}</td></tr>
+                          {% if c.cost.trip %}<tr><td>Trip fee</td><td>{{ c.cost.trip | money }}</td></tr>{% endif %}
+                          <tr class="total"><td>Total</td><td>{{ c.cost.total | money }}</td></tr>
+                        </table>
+                      </div>
+                    </div>
+                  </details>
+                </li>
+                {% endfor %}
+              </ol>
+              {% if d.missing_info %}<p class="small muted" style="margin-top:0.5rem">Would help: {{ d.missing_info | join(" ") }}</p>{% endif %}
+            </div>
+          </section>
+        </div>
+      {% endif %}
+    </div>
+
+    {# ---------- side column: decision, questions, chat, timeline ---------- #}
+    <aside class="ticket-side stack" style="--gap:1rem">
+      {% if brief %}
+        {% include "partials/decision.html" %}
+        {% if ticket.status != "closed" and brief.data.questions_for_reporter %}{% include "partials/questions.html" %}{% endif %}
+      {% endif %}
+      <section class="sheet">
+        <div class="sheet-head"><h2>Chat</h2><p class="small muted">Between the manager and the technician on this ticket.</p></div>
+        <div class="sheet-body">
+          <div hx-get="/app/tickets/{{ ticket.id }}/chat" hx-trigger="load, every 4s" hx-swap="innerHTML" id="chat-poll"></div>
+          <form class="chat-form" hx-post="/app/tickets/{{ ticket.id }}/chat" hx-target="#chat-poll" hx-swap="innerHTML" hx-on::after-request="this.reset()">
+            <label class="sr-only" for="chat-text">Message</label>
+            <input type="text" id="chat-text" name="text" placeholder="Write a message" autocomplete="off">
+            <button class="btn small">Send</button>
+          </form>
+        </div>
+      </section>
+      {% include "partials/timeline.html" %}
+    </aside>
+  </div>
+
+  {% if not is_manager and ticket.status == "assigned" %}
+  <div class="mobile-bar">
+    <a class="btn secondary" href="#questions">Questions</a>
+    <a class="btn tag" href="/app/tickets/{{ ticket.id }}/close">Close job</a>
+  </div>
+  {% endif %}
+</div>

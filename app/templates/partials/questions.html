@@ -1,0 +1,28 @@
+{% set qs = brief.data.questions_for_reporter %}
+{% set answers = ticket.answers or {} %}
+<section class="sheet" id="questions">
+  <div class="sheet-head"><h2>Ask the {{ L.reporter }}</h2>
+    <p class="small muted">Best question first. Tap an answer as you go, then refine.</p></div>
+  <div class="sheet-body">
+    <ol class="questions">
+      {% for q in qs %}
+      {% set a = answers.get(q.question, {}).get("answer") %}
+      <li class="q {{ 'answered' if a }}">
+        <div class="q-text">{{ q.question }}</div>
+        <div class="q-why">{{ q.why }}</div>
+        <div class="q-actions">
+          {% for value, label in [("yes", "Yes"), ("no", "No"), ("unsure", "Not sure")] %}
+          <button class="{{ value }}" aria-pressed="{{ 'true' if a == value else 'false' }}"
+                  hx-post="/app/tickets/{{ ticket.id }}/answer" hx-target="#questions" hx-swap="outerHTML"
+                  hx-vals='{{ {"question": q.question, "answer": value} | tojson }}'>{{ label }}</button>
+          {% endfor %}
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+    {% set answered = qs | selectattr("question", "in", answers) | list | length %}
+    <button class="btn {{ 'tag' if answered else 'secondary' }} block" style="margin-top:0.75rem" {% if not answered %}disabled{% endif %}
+            hx-post="/app/tickets/{{ ticket.id }}/refine" hx-target="#ticket-body" hx-swap="outerHTML">
+      Refine diagnosis{% if answered %} with {{ answered }} answer{{ "s" if answered > 1 }}{% endif %}</button>
+  </div>
+</section>

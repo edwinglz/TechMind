@@ -2,22 +2,27 @@
 {% extends "base.html" %}
 {% from "macros.html" import logo %}
 {% block body %}
-<header class="bg-white border-b border-slate-200">
-  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-    <a href="/app" class="flex items-center gap-2 min-w-0">
-      {{ logo() }}
-      <span class="font-semibold">TechMind</span>
-      <span class="hidden sm:inline text-slate-400 truncate">· {{ company.name }}</span>
-    </a>
-    <div class="flex items-center gap-3 text-sm">
-      <span class="text-slate-600 truncate">{{ display_name(user) }}</span>
-      <form method="post" action="/logout">
-        <button class="text-indigo-600 hover:underline whitespace-nowrap">Log out</button>
-      </form>
+<header class="topbar">
+  <div class="inner">
+    <a href="/app" class="wordmark">{{ logo() }}TechMind</a>
+    <nav aria-label="Main">
+      {% if user.role == "manager" %}
+      <a href="/app" {% if nav == "board" %}aria-current="page"{% endif %}>Board</a>
+      <a href="/app/tickets/new" {% if nav == "new" %}aria-current="page"{% endif %}>New report</a>
+      <a href="/app/insights" {% if nav == "insights" %}aria-current="page"{% endif %}>Insights</a>
+      <a href="/app/history" {% if nav == "history" %}aria-current="page"{% endif %}>History</a>
+      {% else %}
+      <a href="/app" {% if nav == "board" %}aria-current="page"{% endif %}>My jobs</a>
+      {% endif %}
+    </nav>
+    <div class="who">
+      <span class="company-name">{{ company.name }}</span>
+      <span class="name">{{ display_name(user) }}</span>
+      <form method="post" action="/logout"><button>Log out</button></form>
     </div>
   </div>
 </header>
-<main class="max-w-6xl mx-auto px-4 py-6">
+<main class="page {% block page_class %}{% endblock %}">
   {% block content %}{% endblock %}
 </main>
 {% endblock %}

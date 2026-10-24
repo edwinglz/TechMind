@@ -1,0 +1,23 @@
+{% extends "app_base.html" %}
+{% block title %}{{ product.model_name }} · {{ asset.ref }} · TechMind{% endblock %}
+{% block content %}
+<div style="max-width:820px" class="stack">
+  <div class="page-head" style="margin:0"><div><h1>{{ product.model_name }}</h1><p class="muted">{{ product.manufacturer }} · {{ site.name }}</p></div></div>
+  <section class="sheet"><div class="sheet-body">
+    <dl class="plate">
+      <div><dt>Unit</dt><dd>{{ asset.ref }}</dd></div><div><dt>Model</dt><dd>{{ product.ref }}</dd></div>
+      <div><dt>Serial</dt><dd>{{ asset.serial or "—" }}</dd></div>
+      <div><dt>Installed</dt><dd>{{ asset.install_date.strftime("%b %d, %Y") if asset.install_date else "—" }}</dd></div>
+    </dl>
+  </div></section>
+  <section class="sheet"><div class="sheet-head"><h2>Every ticket on this unit</h2></div>
+    <div class="sheet-body"><ul class="unit-history">
+      {% for t in history %}
+      <li class="spread"><span><span class="faint">{{ t.created_at.strftime("%b %d, %Y") }}</span> ·
+        {% if t.source == "app" %}<a href="/app/tickets/{{ t.id }}">{{ t.description }}</a>{% else %}{{ t.description }}{% endif %}
+        {% if t.known_issue_id and issues.get(t.known_issue_id) %}<br><span class="small muted">{{ issues[t.known_issue_id].title }}</span>{% endif %}</span>
+        {% set st = status_info(t, L) %}<span class="chip {{ st.chip }}">{{ st.label }}</span></li>
+      {% else %}<li class="muted">No tickets yet.</li>{% endfor %}
+    </ul></div></section>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "app_base.html" %}
+{% block title %}{{ ticket.ref }} · TechMind{% endblock %}
+{% block page_class %}{% if not is_manager and ticket.status == "assigned" %}has-bar{% endif %}{% endblock %}
+{% block content %}
+{% include "partials/ticket_body.html" %}
+{% endblock %}

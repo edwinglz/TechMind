@@ -1,0 +1,28 @@
+{% if asset %}
+<section class="sheet unit-card stack">
+  <div>
+    <h2>{{ product.model_name }}</h2>
+    <p class="muted small">{{ product.manufacturer }} · {{ site.name }}</p>
+  </div>
+  <dl class="plate">
+    <div><dt>Unit</dt><dd>{{ asset.ref }}</dd></div>
+    <div><dt>Serial</dt><dd>{{ asset.serial or "—" }}</dd></div>
+    <div><dt>Installed</dt><dd>{{ asset.install_date.strftime("%b %Y") if asset.install_date else "—" }}</dd></div>
+    <div><dt>Last service</dt><dd>{{ asset.last_service_date.strftime("%b %d") if asset.last_service_date else "—" }}</dd></div>
+  </dl>
+  <div>
+    <h3>Recent tickets on this unit</h3>
+    <ul class="unit-history">
+      {% for t in history[:5] %}
+      <li><span class="faint">{{ t.created_at.strftime("%b %d") }}</span> · {{ t.description }}
+        {% if t.known_issue_id and issues.get(t.known_issue_id) %}<br><span class="small muted">{{ issues[t.known_issue_id].title }}</span>{% endif %}</li>
+      {% else %}<li class="muted">No tickets yet.</li>{% endfor %}
+    </ul>
+  </div>
+</section>
+{% else %}
+<section class="sheet unit-card">
+  <h2>Picking the {{ L.asset }} helps</h2>
+  <p class="muted" style="margin-top:0.4rem">With the exact unit, the brief uses its manual, its known issues and its own repair history. If the {{ L.reporter }} isn't sure, leave it blank and the brief will start by asking.</p>
+</section>
+{% endif %}

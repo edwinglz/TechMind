@@ -1,0 +1,27 @@
+{% extends "app_base.html" %}
+{% block title %}History · TechMind{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Ticket history</h1><p class="muted">Every report, newest first, including the history you imported.</p></div>
+  <a class="btn secondary" href="/app/export/ticket_history.csv">Export CSV</a>
+</div>
+<section class="sheet"><div class="sheet-body table-wrap">
+  <table class="data">
+    <thead><tr><th>Ticket</th><th>Date</th><th>{{ L.site | cap }}</th><th>{{ L.asset | cap }}</th><th>Report</th><th>What it was</th><th>Result</th></tr></thead>
+    <tbody>
+      {% for t in tickets %}
+      {% set st = status_info(t, L) %}
+      <tr>
+        <td class="nowrap">{% if t.source == "app" %}<a href="/app/tickets/{{ t.id }}">{{ t.ref }}</a>{% else %}{{ t.ref }}{% endif %}</td>
+        <td class="nowrap">{{ t.created_at.strftime("%b %d") }}</td>
+        <td>{{ sites[t.site_id].name }}</td>
+        <td>{% if t.asset_id %}<a href="/app/assets/{{ t.asset_id }}">{{ products[t.product_id].model_name }}</a>{% else %}<span class="faint">Unknown</span>{% endif %}</td>
+        <td>{{ t.description }}</td>
+        <td>{{ issues[t.known_issue_id].title if t.known_issue_id in issues else "" }}</td>
+        <td><span class="chip {{ st.chip }}">{{ st.label }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div></section>
+{% endblock %}

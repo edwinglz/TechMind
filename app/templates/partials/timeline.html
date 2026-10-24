@@ -1,0 +1,22 @@
+<section class="sheet">
+  <div class="sheet-head"><h2>Log</h2></div>
+  <div class="sheet-body">
+    <ol class="timeline">
+      {% for e in events if e.type != "chat_message" %}
+      {% set who = users[e.actor_user_id].name if e.actor_user_id in users else "" %}
+      <li><time>{{ e.created_at | clock }}</time>
+        <span>{% if e.type == "created" %}Report entered{% if who %} by {{ who }}{% endif %}
+        {% elif e.type == "brief_generated" %}Brief prepared{% if e.payload.top_cause %}: {{ e.payload.top_cause | midcase }}{% endif %}
+        {% elif e.type == "brief_refined" %}Brief refined (v{{ e.payload.version }}){% if e.payload.top_cause %}: {{ e.payload.top_cause | midcase }}{% endif %}
+        {% elif e.type == "self_fix_approved" %}Self-fix approved{% if who %} by {{ who }}{% endif %}
+        {% elif e.type == "self_fix_outcome" %}{{ L.reporter | cap }} self-fix {{ "worked" if e.payload.resolved else "didn't work" }}
+        {% elif e.type == "assigned" %}Dispatched to {{ e.payload.technician }}
+        {% elif e.type == "question_answered" %}{{ who }}: “{{ e.payload.question }}” {{ e.payload.answer }}
+        {% elif e.type == "known_issue_created" %}New known issue added: {{ e.payload.title }}
+        {% elif e.type == "fix_variant_created" %}New fix recorded for this issue
+        {% elif e.type == "closed" %}Closed{% if who %} by {{ who }}{% endif %}{% if e.payload.issue %}: {{ e.payload.issue | midcase }}{% endif %}
+        {% else %}{{ e.type | replace("_", " ") | cap }}{% endif %}</span></li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>

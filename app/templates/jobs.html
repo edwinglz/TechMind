@@ -1,0 +1,15 @@
+{% extends "app_base.html" %}
+{% from "macros.html" import tag_card %}
+{% block title %}My jobs · TechMind{% endblock %}
+{% block content %}
+<div class="jobs">
+  <div class="page-head"><div><h1>My jobs</h1><p class="muted">Hi {{ user.name }}. Each job comes with a brief so you know what to bring.</p></div></div>
+  {% for c in open_jobs %}{{ tag_card(c, L) }}{% else %}
+    <p class="muted">No open jobs. New dispatches show up here.</p>
+  {% endfor %}
+  {% if done %}
+  <h2 style="margin-top:2rem">Recently closed</h2>
+  <div style="margin-top:0.75rem">{% for c in done %}{{ tag_card(c, L) }}{% endfor %}</div>
+  {% endif %}
+</div>
+{% endblock %}

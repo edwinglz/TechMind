@@ -1,0 +1,64 @@
+{% extends "app_base.html" %}
+{% from "macros.html" import tag_card %}
+{% block title %}Board · TechMind{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Service board</h1>
+    <p class="muted">Every report from your {{ L.sites }}, from first call to closed.</p>
+  </div>
+  <a class="btn tag" href="/app/tickets/new">New report</a>
+</div>
+
+{% set lane_defs = [
+  ("decide", "Needs a decision", "var(--tag)", "Brief is ready. Approve a fix " ~ L.reporters ~ " can try, or dispatch a technician."),
+  ("staff", L.reporter | cap ~ " trying a fix", "#8fb3c4", "Waiting to hear back from the " ~ L.site ~ "."),
+  ("tech", "Technician on it", "var(--ink)", "Dispatched and in progress."),
+  ("closed", "Recently closed", "var(--green)", ""),
+] %}
+<div class="board">
+  {% for key, title, band, empty in lane_defs %}
+  <section aria-labelledby="lane-{{ key }}">
+    <div class="lane-head" style="--band: {{ band }}">
+      <h2 id="lane-{{ key }}">{{ title }}</h2>
+      <span class="count">{{ lanes[key] | length }}</span>
+    </div>
+    {% for c in lanes[key] %}{{ tag_card(c, L) }}{% else %}
+      <p class="lane-empty">{% if key == "decide" %}No open reports. When a {{ L.site }} calls, add it with <a href="/app/tickets/new">New report</a>.{% else %}Nothing here.{% endif %}</p>
+    {% endfor %}
+  </section>
+  {% endfor %}
+</div>
+
+<div class="signals">
+  <section class="sheet">
+    <div class="sheet-head"><h2>Rising this month</h2></div>
+    <div class="sheet-body">
+      <ul class="signal-list">
+        {% for s in rising %}
+        <li><span>{{ s.issue.title }}<br><span class="small muted">{{ products[s.issue.product_id].model_name }}</span></span>
+            <span class="trend rising">{{ s.last30 }} vs {{ s.prior30 }}</span></li>
+        {% else %}<li class="muted">Nothing unusual.</li>{% endfor %}
+      </ul>
+    </div>
+  </section>
+  <section class="sheet">
+    <div class="sheet-head"><h2>Fixes that changed</h2></div>
+    <div class="sheet-body">
+      <ul class="signal-list">
+        {% for s in changed %}
+        <li><span>{{ s.issue.title }}<br><span class="small muted">A technician's fix now beats the listed one</span></span>
+            <span class="rate">{{ (100 * s.recommended.success_rate) | round | int }}%</span></li>
+        {% else %}<li class="muted">The listed fixes are still the best ones. When technicians find something that works better, it shows up here.</li>{% endfor %}
+      </ul>
+    </div>
+  </section>
+  <section class="sheet">
+    <div class="sheet-head"><h2>Trips avoided</h2></div>
+    <div class="sheet-body">
+      <div class="big-number">{{ avoided }}</div>
+      <p class="muted">times {{ L.reporters }} fixed it themselves with phone guidance, saving about <strong>{{ saved | money }}</strong> in trip fees and labor.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}

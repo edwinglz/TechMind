@@ -1,0 +1,82 @@
+{% extends "app_base.html" %}
+{% block title %}New report · TechMind{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>New report</h1>
+    <p class="muted">Write down what the {{ L.reporter }} told you, in their words. TechMind prepares the brief.</p>
+  </div>
+</div>
+
+<div class="intake">
+  <form method="post" action="/app/tickets" enctype="multipart/form-data" class="sheet">
+    <div class="sheet-body stack">
+      <div class="two">
+        <label class="field"><span>{{ L.site | cap }}</span>
+          <select name="site_id" required hx-get="/app/site-assets" hx-target="#asset-select" hx-swap="innerHTML">
+            <option value="">Choose a {{ L.site }}</option>
+            {% for s in sites %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="field"><span>{{ L.asset | cap }}</span>
+          <select name="asset_id" id="asset-select" hx-get="/app/asset-card" hx-target="#unit-panel" hx-trigger="change">
+            <option value="">Choose the {{ L.site }} first</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="field dictate"><span>What's wrong?</span>
+        <textarea name="description" id="description" required placeholder="“The soda is coming out flat and kind of watery.”"></textarea>
+        <button type="button" class="btn secondary small mic" id="mic" hidden aria-pressed="false">Dictate</button>
+      </label>
+
+      <div>
+        <span class="field-label">Photo</span>
+        <label class="photo-drop">
+          <img id="photo-preview" alt="" hidden>
+          <span><input type="file" name="photo" accept="image/*" capture="environment" id="photo">
+          <span class="hint" style="display:block">Ask the {{ L.reporter }} to text one: the unit, the error display, the leak. Optional but it helps.</span></span>
+        </label>
+      </div>
+
+      <fieldset>
+        <legend class="field-label">How will this be handled?</legend>
+        <div class="choice">
+          <label><input type="radio" name="service_mode" value="remote" checked><span>Guide them by phone first</span></label>
+          <label><input type="radio" name="service_mode" value="onsite"><span>Send a technician</span></label>
+        </div>
+        <p class="hint">Either way you get the full brief and can change course on the ticket.</p>
+      </fieldset>
+
+      <div class="row"><button class="btn tag">Create report and prepare brief</button></div>
+    </div>
+  </form>
+
+  <aside id="unit-panel">
+    {% include "partials/asset_card.html" %}
+  </aside>
+</div>
+
+<script>
+  // Dictation with the browser's built-in speech recognition (Chrome and Edge). Typing always works.
+  (function () {
+    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const mic = document.getElementById("mic"), box = document.getElementById("description");
+    if (!Rec) return;
+    mic.hidden = false;
+    let rec = null;
+    mic.addEventListener("click", () => {
+      if (rec) { rec.stop(); return; }
+      rec = new Rec(); rec.lang = "en-US"; rec.interimResults = true; rec.continuous = true;
+      const start = box.value ? box.value.trim() + " " : "";
+      rec.onresult = (e) => { box.value = start + Array.from(e.results).map(r => r[0].transcript).join(" "); };
+      rec.onend = () => { rec = null; mic.classList.remove("on"); mic.textContent = "Dictate"; mic.setAttribute("aria-pressed", "false"); };
+      rec.start(); mic.classList.add("on"); mic.textContent = "Stop"; mic.setAttribute("aria-pressed", "true");
+    });
+  })();
+  document.getElementById("photo").addEventListener("change", (e) => {
+    const file = e.target.files[0], img = document.getElementById("photo-preview");
+    if (file) { img.src = URL.createObjectURL(file); img.hidden = false; } else { img.hidden = true; }
+  });
+</script>
+{% endblock %}
