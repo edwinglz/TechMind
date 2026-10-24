@@ -1,0 +1,25 @@
+# Secrets
+.env
+
+# SQLite database (recreated and re-seeded on startup)
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite3
+
+# User uploads (ticket photos, import files)
+uploads/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
