@@ -1,0 +1,5 @@
+model_id,manufacturer,model_name,category,manual_file
+CI-200,Glacier Peak Dispense,CI-200 Countertop Ice/Beverage Dispenser,fountain dispenser,glacierpeak_ci200.md
+DI-8,Glacier Peak Dispense,DI-8 Drop-In Dispenser,fountain dispenser,glacierpeak_di8.md
+TS-500,Fizzwell Systems,FlowTouch TS-500 Self-Serve Dispenser,fountain dispenser,fizzwell_ts500.md
+RC-100,Fizzwell Systems,RC-100 Remote Carbonator,carbonation system,fizzwell_rc100.md

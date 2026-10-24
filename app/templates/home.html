@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+  <h1 class="text-2xl font-semibold">{{ company.name }}</h1>
+  <p class="mt-1 text-slate-500">{{ company.profile.industry | cap }}</p>
+</div>
+
+{% set tiles = [
+  (L.sites | cap, stats.sites),
+  (L.assets | cap, stats.assets),
+  ("Models", stats.products),
+  ("Parts", stats.parts),
+  ("Known issues", stats.issues),
+  ("Manual sections", stats.manual_sections),
+  ("Past tickets", stats.tickets),
+  ("Fixed by " ~ L.reporter, stats.self_fix_share ~ "%"),
+] %}
+<div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+  {% for label, value in tiles %}
+  <div class="rounded-xl border border-slate-200 bg-white p-4">
+    <div class="text-sm text-slate-500">{{ label }}</div>
+    <div class="mt-1 text-2xl font-semibold tabular-nums">{{ value }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="mt-6 grid gap-4 md:grid-cols-3">
+  <section class="rounded-xl border border-slate-200 bg-white p-4">
+    <h2 class="font-semibold">{{ L.reporters | cap }} may try</h2>
+    <ul class="mt-2 space-y-1 text-sm list-disc pl-5">
+      {% for item in company.profile.self_fix_allowed %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+  </section>
+  <section class="rounded-xl border border-slate-200 bg-white p-4">
+    <h2 class="font-semibold">{{ L.reporters | cap }} must never</h2>
+    <ul class="mt-2 space-y-1 text-sm list-disc pl-5">
+      {% for item in company.profile.self_fix_forbidden %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+  </section>
+  <section class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+    <h2 class="font-semibold text-amber-900">Safety topics</h2>
+    <ul class="mt-2 space-y-1 text-sm list-disc pl-5 text-amber-900">
+      {% for item in company.profile.safety_topics %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+
+<p class="mt-6 text-sm text-slate-500">
+  Labor {{ company.labor_rate_per_hour | money }}/hour · Trip fee {{ company.trip_fee | money }}
+</p>
+{% endblock %}

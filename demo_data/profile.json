@@ -1,0 +1,30 @@
+{
+  "company_name": "Kestrel Burger Co.",
+  "industry": "fast-food beverage equipment (fountain drink machines)",
+  "labels": {
+    "reporter": "store staff",
+    "reporters": "store staff",
+    "site": "store",
+    "sites": "stores",
+    "asset": "machine",
+    "assets": "machines"
+  },
+  "self_fix_allowed": [
+    "replacing an empty bag-in-box syrup bag",
+    "checking that the CO2 tank valve is open and the gauge isn't in the red",
+    "checking the ice level in the ice bin",
+    "cleaning or soaking nozzles and diffusers",
+    "checking the power plug and resetting a tripped breaker once"
+  ],
+  "self_fix_forbidden": [
+    "adjusting the CO2 regulator",
+    "opening any panel or cover that needs a tool",
+    "any electrical work"
+  ],
+  "safety_topics": [
+    "CO2 asphyxiation in enclosed spaces: if a CO2 leak is suspected (hissing, headache, dizziness), ventilate and leave the area",
+    "high-pressure gas: never loosen fittings on a pressurized CO2 line or carbonator",
+    "water near electrical parts: unplug before touching wet areas around the machine",
+    "sanitation: mold in nozzles and a dirty ice bin are a health hazard; sanitize before serving"
+  ]
+}

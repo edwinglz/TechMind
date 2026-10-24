@@ -11,6 +11,30 @@ The code only knows generic concepts: **sites**, **assets**, **products** (model
 
 The profile is injected into the AI prompt and into every page template. Swapping in a laptop repair shop's data changes the app's vocabulary and advice without touching code.
 
+## Code map
+
+| Path | What it does |
+|---|---|
+| `app/main.py` | Creates the FastAPI app; on startup creates tables and seeds the demo company |
+| `app/config.py` | Reads `.env` (AI mode, database, upload folder, `AS_OF_DATE`) |
+| `app/models.py` | All database tables |
+| `app/db.py` | Database engine, sessions, FTS5 search tables |
+| `app/auth.py` | "Log in as" cookie; `require_login` dependency for pages |
+| `app/templating.py` | Jinja2 setup; company labels (`L.site`, `L.assets`, …) and money formatting |
+| `app/importer/` | `parse.py` validates import files into a preview; `load.py` writes them; `manuals.py` splits manuals into sections |
+| `app/services/` | Shared logic: search-index writes, fix-variant helpers (more in later phases) |
+| `app/routes/` | One module per page area |
+| `app/templates/` | HTML pages (Tailwind + HTMX from CDNs, no build step) |
+| `demo_data/` | The fictional demo company, in the import format |
+| `scripts/generate_demo_history.py` | Builds and checks `demo_data/ticket_history.csv` |
+| `tests/` | pytest suite |
+
+## Import: how a company's data gets in
+
+1. **Parse** (`app/importer/parse.py`). Files arrive as name → bytes, so uploads and the demo folder take the same path. Zips are unpacked and `.md` files become manuals. Each CSV is checked for required columns, values are converted (dates, numbers, y/n, `;`-lists, `|`-lists), and every reference is checked (an asset's `model_id` must exist in `products.csv`, and so on). Problems are reported with spreadsheet row numbers. Nothing is written yet.
+2. **Load** (`app/importer/load.py`). This creates the company and its default users, then copies every row. Manuals are split at `##`/`###` headings into sections and indexed for search. Each known issue's documented fix becomes its first fix variant. Imported history tickets are grouped by the fix steps they used, so a different fix that technicians have been using becomes its own variant with its own track record.
+3. **Seed** (`app/seed.py`). On startup, if there are no companies, the app parses and loads `demo_data/`.
+
 ## Ticket flow
 
 ```mermaid
@@ -62,5 +86,5 @@ Ticket status moves `new → briefed → awaiting_self_fix → assigned → clos
 All of this is plain SQL and Python over the tickets table; there is no model training.
 
 - **Fix variants.** Each known issue can have several fixes. Success stats (attempts, successes, average minutes) are computed from the tickets that used each variant. The **recommended fix** is the variant with the best success rate among those with at least 3 attempts; ties go to the faster one. When a technician describes a different fix, a small Claude Haiku call decides whether it matches an existing variant or is new.
-- **Common issues.** Each issue's recent frequency is a recency-weighted count over the last 90 days: a ticket from today counts 1, one from 30 days ago counts 0.5, from 60 days ago 0.25. An issue is **rising** if the last 30 days had more tickets than the 30 before, **fading** if fewer. Retrieval ranks known issues by this score, so briefs shift as conditions change.
+- **Common issues.** Each issue's recent frequency is a recency-weighted count over the last 90 days: a ticket from today counts 1, one from 30 days ago counts 0.5, from 60 days ago 0.25. An issue is **rising** if the last 30 days had more tickets than the 30 before, **fading** if fewer. The busier of the two windows needs at least 2 tickets, so a single ticket (1 vs 0) doesn't count as a trend. Retrieval ranks known issues by this score, so briefs shift as conditions change.
 - **Repeat failures.** An asset with 3 or more tickets in 60 days is flagged in the brief and on its page.

@@ -1,0 +1,3 @@
+/* Small additions on top of Tailwind (loaded from its CDN in base.html). */
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline-flex; }

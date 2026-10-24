@@ -1,0 +1,2 @@
+# Store text files with LF line endings so Linux deploys (Render) and Windows dev agree.
+* text=auto eol=lf

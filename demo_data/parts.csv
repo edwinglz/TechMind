@@ -1,0 +1,17 @@
+part_id,name,compatible_models,unit_price,in_stock
+P-CPUMP,Carbonator pump motor assembly,CI-200;RC-100,285.00,2
+P-CHKV,Carbonator pump inlet check valve,CI-200;RC-100,18.50,6
+P-STRN,Carbonator water inlet strainer screen,CI-200;RC-100,9.75,10
+P-VSEAL,Valve seal and O-ring kit,CI-200;DI-8;TS-500,12.40,25
+P-NOZ,Nozzle and diffuser set,CI-200;DI-8;TS-500,24.00,12
+P-SOL,Valve solenoid coil (24V),CI-200;DI-8;TS-500,46.00,5
+P-AGIT,Ice agitator motor,CI-200,168.00,1
+P-ICECH,Ice chute and gate assembly,CI-200,56.00,3
+P-DRAIN,Ice bin drain tube kit,CI-200;DI-8,14.00,8
+P-BIBC,Bag-in-box connector,CI-200;DI-8;TS-500,11.25,20
+P-BIBP,Bag-in-box syrup pump,CI-200;DI-8;TS-500,132.00,3
+P-REG2,CO2 secondary regulator,CI-200;DI-8;TS-500;RC-100,89.00,2
+P-WFILT,Water filter cartridge,CI-200;RC-100,38.00,9
+P-RELV,Carbonator tank relief valve,CI-200;RC-100,22.00,4
+P-TSFAN,TS-500 condenser fan motor,TS-500,74.00,2
+P-TSPSU,TS-500 power supply,TS-500,120.00,1
