@@ -1,34 +1,32 @@
 {% extends "base.html" %}
+{% from "macros.html" import logo %}
 {% block title %}Log in · TechMind{% endblock %}
-{% block content %}
-<div class="max-w-md mx-auto">
-  <h1 class="text-2xl font-semibold">Log in as</h1>
-  <p class="mt-1 text-sm text-slate-500">Demo login: pick who you are. There are no passwords.</p>
+{% block body %}
+<div class="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+  <a href="/" class="flex items-center gap-2">
+    {{ logo("h-10 w-10") }}
+    <span class="text-xl font-semibold">TechMind</span>
+  </a>
 
-  {% for c, users in by_company %}
-  <section class="mt-6">
-    <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ c.name }}</h2>
-    <div class="mt-2 grid gap-2">
-      {% for u in users %}
-      <form method="post" action="/login">
-        <input type="hidden" name="user_id" value="{{ u.id }}">
-        <button class="w-full flex items-center justify-between rounded-xl border bg-white px-4 py-3 text-left hover:border-indigo-400 hover:shadow-sm
-                       {% if user and user.id == u.id %}border-indigo-500 ring-1 ring-indigo-500{% else %}border-slate-200{% endif %}">
-          <span class="font-medium">{{ display_name(u) }}</span>
-          <span class="text-xs text-slate-500">{{ "Desktop" if u.role == "manager" else "Phone" }}</span>
-        </button>
-      </form>
-      {% endfor %}
-    </div>
-  </section>
-  {% else %}
-  <p class="mt-6 text-slate-600">No companies yet.</p>
-  {% endfor %}
+  <form method="post" action="/login" class="mt-8 w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h1 class="text-lg font-semibold">Log in to your workspace</h1>
 
-  {% if user %}
-  <form method="post" action="/logout" class="mt-6">
-    <button class="text-sm text-slate-500 hover:underline">Log out</button>
+    {% if error %}
+    <p class="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <label class="mt-4 block text-sm font-medium" for="username">Username</label>
+    <input id="username" name="username" value="{{ username or '' }}" autocomplete="username" required autofocus
+           autocapitalize="none" spellcheck="false"
+           class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+
+    <label class="mt-4 block text-sm font-medium" for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required
+           class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+
+    <button class="mt-6 w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white hover:bg-indigo-700">Log in</button>
   </form>
-  {% endif %}
+
+  <a href="/" class="mt-6 text-sm text-slate-500 hover:underline">← Back to TechMind</a>
 </div>
 {% endblock %}

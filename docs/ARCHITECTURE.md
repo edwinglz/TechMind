@@ -19,21 +19,29 @@ The profile is injected into the AI prompt and into every page template. Swappin
 | `app/config.py` | Reads `.env` (AI mode, database, upload folder, `AS_OF_DATE`) |
 | `app/models.py` | All database tables |
 | `app/db.py` | Database engine, sessions, FTS5 search tables |
-| `app/auth.py` | "Log in as" cookie; `require_login` dependency for pages |
+| `app/auth.py` | Password hashing, signed session cookie, `require_login` dependency for pages |
+| `app/seed.py` | Loads the demo company and its demo accounts when the database is empty |
 | `app/templating.py` | Jinja2 setup; company labels (`L.site`, `L.assets`, …) and money formatting |
 | `app/importer/` | `parse.py` validates import files into a preview; `load.py` writes them; `manuals.py` splits manuals into sections |
 | `app/services/` | Shared logic: search-index writes, fix-variant helpers (more in later phases) |
-| `app/routes/` | One module per page area |
-| `app/templates/` | HTML pages (Tailwind + HTMX from CDNs, no build step) |
+| `app/routes/` | One module per page area: `public.py` (product page), `login.py`, `dashboard.py` |
+| `app/templates/` | HTML pages (Tailwind + HTMX from CDNs, no build step). `base.html` is the bare shell; `app_base.html` is the logged-in layout |
 | `demo_data/` | The fictional demo company, in the import format |
 | `scripts/generate_demo_history.py` | Builds and checks `demo_data/assets.csv` and `demo_data/ticket_history.csv` |
 | `tests/` | pytest suite |
+
+## Pages and login
+
+- `/` is the public product page. It describes TechMind in general terms and shows no company's data. Its only way in is **Log in**.
+- `/login` checks a username and password against the `users` table. Passwords are stored as salted PBKDF2 hashes.
+- A successful login sets a cookie holding the user id plus an HMAC signature made with `SECRET_KEY`. Changing the id in the cookie breaks the signature, so it can't be used to become someone else.
+- `/app/...` is the product. Every page there depends on `require_login`, which reads the cookie, loads the user and their company, and redirects to `/login` if anything is missing. All data shown is filtered by that company's id.
 
 ## Import: how a company's data gets in
 
 1. **Parse** (`app/importer/parse.py`). Files arrive as name → bytes, so uploads and the demo folder take the same path. Zips are unpacked and `.md` files become manuals. Each CSV is checked for required columns, values are converted (dates, numbers, y/n, `;`-lists, `|`-lists), and every reference is checked (an asset's `model_id` must exist in `products.csv`, and so on). Problems are reported with spreadsheet row numbers. Nothing is written yet.
 2. **Load** (`app/importer/load.py`). This creates the company and its default users, then copies every row. Manuals are split at `##`/`###` headings into sections and indexed for search. Each known issue's documented fix becomes its first fix variant. Imported history tickets are grouped by the fix steps they used, so a different fix that technicians have been using becomes its own variant with its own track record.
-3. **Seed** (`app/seed.py`). On startup, if there are no companies, the app parses and loads `demo_data/`.
+3. **Seed** (`app/seed.py`). On startup, if there are no companies, the app parses and loads `demo_data/` and creates the demo accounts.
 
 ## Ticket flow
 
@@ -66,7 +74,7 @@ Every table has an integer `id` and a `company_id`, so several companies can sha
 | Table | What it holds |
 |---|---|
 | `companies` | name, domain profile (JSON), labor rate, trip fee, currency |
-| `users` | people in the "Log in as" picker, with role `manager` or `technician` |
+| `users` | accounts: username (unique across companies), password hash, display name, role `manager` or `technician` |
 | `sites` | where assets live (a store, a customer's home) |
 | `products` | equipment models: manufacturer, name, category, manual file |
 | `assets` | one physical unit: which product, at which site, serial, dates |

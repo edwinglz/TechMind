@@ -3,7 +3,7 @@
 The demo company is a fictional burger chain whose stores each run a typical mix
 of quick-service equipment (beverage dispensers, fryers, griddles, ice machines,
 walk-in coolers, rooftop HVAC). The ticket history is not random noise: it is
-planned so the demo can show specific patterns. This script builds ~125 resolved
+planned so the demo can show specific patterns. This script builds ~120 resolved
 tickets from May to October 2026 using a fixed random seed (every run produces
 the same files), then checks each planned pattern before writing anything:
 
@@ -64,40 +64,40 @@ WINDOW_60_START = TODAY - timedelta(days=60)
 # Tickets per issue per period.
 PLAN = {
     # beverage
-    "KI-CI-01": [1, 1, 0, 1],
-    "KI-CI-02": [2, 1, 1, 1],
+    "KI-CI-01": [1, 0, 0, 1],
+    "KI-CI-02": [1, 1, 1, 1],
     "KI-CI-03": [4, 4, 1, 1],  # periods 1-2: original fix; periods 3-4: the newer fix
-    "KI-CI-04": [2, 3, 2, 1],  # fading
-    "KI-CI-05": [1, 2, 2, 0],  # fading
-    "KI-CI-06": [1, 1, 0, 3],  # rising
+    "KI-CI-04": [1, 2, 2, 1],  # fading
+    "KI-CI-05": [1, 1, 2, 0],  # fading
+    "KI-CI-06": [0, 1, 0, 3],  # rising
     "KI-CI-07": [1, 0, 0, 0],
-    "KI-CI-08": [1, 1, 0, 0],
-    "KI-TS-01": [1, 1, 0, 0],
-    "KI-TS-02": [1, 1, 0, 0],
-    "KI-TS-03": [1, 1, 0, 0],
+    "KI-CI-08": [1, 0, 0, 0],
+    "KI-TS-01": [1, 0, 0, 0],
+    "KI-TS-02": [1, 0, 0, 0],
+    "KI-TS-03": [1, 0, 0, 0],
     "KI-TS-04": [0, 0, 1, 3],  # rising
-    "KI-TS-05": [2, 2, 0, 1],
-    "KI-TS-06": [1, 2, 2, 0],  # fading
+    "KI-TS-05": [1, 1, 0, 1],
+    "KI-TS-06": [1, 1, 2, 0],  # fading
     # fryers and griddles
-    "KI-EF-01": [1, 2, 1, 1],
+    "KI-EF-01": [2, 2, 1, 1],
     "KI-EF-02": [1, 0, 1, 0],
-    "KI-EF-03": [2, 1, 1, 1],
+    "KI-EF-03": [3, 1, 1, 1],
     "KI-EF-04": [1, 1, 0, 0],
-    "KI-FG-01": [1, 1, 0, 1],
+    "KI-FG-01": [2, 1, 0, 1],
     "KI-FG-02": [1, 1, 1, 0],
     "KI-FG-03": [1, 0, 0, 0],
     # ice machines
-    "KI-IM-01": [2, 2, 1, 0],
+    "KI-IM-01": [2, 3, 1, 0],
     "KI-IM-02": [2, 3, 2, 0],  # fading
-    "KI-IM-03": [1, 0, 0, 1],
+    "KI-IM-03": [1, 1, 0, 1],
     # walk-in coolers
     "KI-WC-01": [1, 3, 2, 0],  # fading
-    "KI-WC-02": [1, 2, 1, 1],
-    "KI-WC-03": [1, 1, 1, 0],
+    "KI-WC-02": [2, 2, 1, 1],
+    "KI-WC-03": [2, 1, 1, 0],
     # rooftop HVAC
-    "KI-RT-01": [2, 2, 1, 0],
+    "KI-RT-01": [3, 2, 1, 0],
     "KI-RT-02": [1, 3, 2, 0],  # fading
-    "KI-RT-03": [1, 1, 0, 0],
+    "KI-RT-03": [2, 1, 0, 0],
     "KI-RT-04": [1, 1, 0, 0],
 }
 EXPECTED_RISING = {"KI-CI-06", "KI-TS-04"}

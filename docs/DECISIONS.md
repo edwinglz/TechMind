@@ -61,10 +61,22 @@ One entry per significant choice: what we decided, what else we considered, and 
 - **Alternatives:** a separate company settings file; hardcoded plural rules.
 - **Why:** every addition is optional, so any file that matches the spec still imports.
 
-## Every company gets the same three demo users
-- **Decided:** loading a company creates Manager, Ana, and Luis for the "Log in as" picker.
-- **Alternatives:** a users.csv in the import.
-- **Why:** there is no real auth (out of scope), and the spec names exactly these three.
+## Public product page plus username/password login
+- **Decided:**
+  - `/` is a TechMind product page with no company data and a **Log in** button.
+  - Login takes a username and password. Everything inside the product lives under `/app`.
+  - Passwords are stored as salted PBKDF2 hashes (standard library).
+  - The session is a cookie holding the user id plus an HMAC signature made with `SECRET_KEY`.
+  - Usernames are unique across all companies, so the login form doesn't need a company field.
+- **Alternatives:**
+  - the spec's "Log in as" picker (no passwords)
+  - a full auth library (sessions table, password reset, sign-up)
+- **Why:** product owner's call. TechMind is a product any company could buy, so the front door should present the product rather than list one company's people. Standard-library hashing and a signed cookie give real protection with no new dependencies. Sign-up, password reset, and rate limiting remain out of scope.
+
+## Demo accounts are created by the seed, not the importer
+- **Decided:** `app/seed.py` creates `manager`, `ana`, and `luis` for the demo company, all with `DEMO_PASSWORD` from `.env`. If that's blank, it generates a random password and logs it once. The importer never creates users.
+- **Alternatives:** a users.csv in the import; a password hardcoded in the repo.
+- **Why:** accounts aren't company equipment data, so they don't belong in the import format, and a password in the repo would be a committed secret.
 
 ## Trends need at least 2 tickets
 - **Decided:** "rising" requires the last 30 days to have more tickets than the prior 30 *and* at least 2. "Fading" is the mirror image.
@@ -93,5 +105,6 @@ One entry per significant choice: what we decided, what else we considered, and 
 - **Savings if a self-fix works** = trip fee + labor for the targeted cause's estimated minutes.
 - **Trip fee** applies when service mode is on-site or once a technician is assigned.
 - **Unknown model:** an optional model picker; if still unknown, retrieval spans the models installed at that site and the first question is "confirm the model".
+- **No migrations:** after a table changes, delete `data/techmind.db` and restart; the demo data is re-seeded. Fine for a hackathon, and deploys start fresh anyway.
 - **Roles:** managers see all tickets; technicians see only their assigned ones. Only technicians close tickets, except the self-fix "resolved" outcome.
 - **Deployment:** Render (free tier wipes the disk, which is fine because the demo company is re-seeded on startup).

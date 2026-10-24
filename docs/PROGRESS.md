@@ -3,7 +3,7 @@
 ## Phases
 
 - [x] **Phase 0: Repo setup.** Git, `.gitignore`, `.env.example`, private GitHub repo, README and docs.
-- [x] **Phase 1: Skeleton, data model, demo data.** FastAPI app, SQLModel tables, FTS5, demo company data and manuals, importer core used for seeding, "Log in as" picker, home page with counts.
+- [x] **Phase 1: Skeleton, data model, demo data.** FastAPI app, SQLModel tables, FTS5, demo company data and manuals, importer core used for seeding, public product page, username/password login, company dashboard.
 - [ ] **Phase 2: Import and catalog.** Import page with preview and errors; sites, assets, products, known issues pages.
 - [ ] **Phase 3: Intake and brief.** Intake form (dictation, photo, service mode), retrieval, brief generation (mock, then live), brief view with costs, progress steps, repeat-failure banner, unknown-model handling.
 - [ ] **Phase 4: Review, technician, close.** Self-fix approval flow, assignment, mobile technician view, questions checklist, Refine, chat, close-ticket form.
@@ -16,12 +16,13 @@
 - `uvicorn app.main:app --reload` starts the app. On first start it creates `data/techmind.db` and loads the demo company:
   - 8 stores, 58 units of equipment, 7 models (beverage, fryer, griddle, ice machine, walk-in, HVAC), 34 parts
   - 31 known issues, 32 fix variants
-  - manual sections and 125 past tickets, both indexed for search
-- "Log in as" picker (Manager, Tech: Ana, Tech: Luis) with a cookie; pages redirect to it when nobody is logged in.
-- The home page shows the company's counts and profile in its own words ("Stores", "Machines", "Fixed by store staff").
+  - manual sections and 121 past tickets, both indexed for search
+- `/` is a public TechMind product page (how it works, features, any-industry, setup) with a **Log in** button. No company data is shown there.
+- Username/password login. Demo accounts are `manager`, `ana`, and `luis`, with the password from `DEMO_PASSWORD`. The cookie is signed so it can't be forged; wrong passwords get a generic error. Log out returns to the product page.
+- `/app` dashboard shows the company's counts in its own words ("Stores", "Equipment", "Fixed by store staff"), equipment by category, and the company profile (collapsed).
 - The importer validates every file and reports errors with row numbers. It is used for seeding now and gets its own upload page in Phase 2.
 - The demo history generator plus checks for every planned pattern (`pytest` runs them).
-- 15 tests pass.
+- 20 tests pass.
 
 ## Next
 

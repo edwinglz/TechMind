@@ -5,6 +5,7 @@ project root (see `.env.example` for every variable and what it does).
 """
 
 import os
+import secrets
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -24,6 +25,8 @@ class Settings:
     as_of_date: date | None
     demo_data_dir: Path
     fixtures_dir: Path
+    secret_key: str  # signs the login cookie
+    demo_password: str  # blank = generate one when seeding
 
 
 def _project_path(value: str) -> Path:
@@ -49,6 +52,10 @@ def _load() -> Settings:
         as_of_date=as_of_date,
         demo_data_dir=BASE_DIR / "demo_data",
         fixtures_dir=BASE_DIR / "fixtures",
+        # Without a configured key, a random one still keeps cookies unforgeable;
+        # it just logs everyone out whenever the server restarts.
+        secret_key=os.getenv("SECRET_KEY", "").strip() or secrets.token_hex(32),
+        demo_password=os.getenv("DEMO_PASSWORD", "").strip(),
     )
 
 

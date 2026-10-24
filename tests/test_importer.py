@@ -33,7 +33,7 @@ def test_demo_data_is_valid(demo_files):
     counts = {name: report.rows for name, report in bundle.reports.items()}
     assert counts == {
         "profile.json": 1, "settings.csv": 1, "sites.csv": 8, "products.csv": 7, "assets.csv": 58,
-        "parts.csv": 34, "known_issues.csv": 31, "ticket_history.csv": 125, "manuals": 7,
+        "parts.csv": 34, "known_issues.csv": 31, "ticket_history.csv": 121, "manuals": 7,
     }
     assert not any(r.warnings for r in bundle.reports.values())
 
@@ -43,7 +43,7 @@ def test_load_demo_company(demo_files, db):
     db.commit()
     assert company.name == "Kestrel Burger Co."
     assert company.trip_fee == 95.0
-    assert db.exec(select(Ticket)).all().__len__() == 125
+    assert db.exec(select(Ticket)).all().__len__() == 121
 
     # The carbonator issue has its documented fix plus the newer one found in history.
     issue = db.exec(select(KnownIssue).where(KnownIssue.ref == "KI-CI-03")).one()
@@ -59,7 +59,7 @@ def test_load_demo_company(demo_files, db):
 
     # Self-fixed tickets are not attached to a technician fix variant.
     self_fixed = db.exec(select(Ticket).where(Ticket.resolved_by_reporter == True)).all()  # noqa: E712
-    assert len(self_fixed) == 37
+    assert len(self_fixed) == 36
     assert all(t.fix_variant_id is None for t in self_fixed)
 
 
@@ -71,8 +71,12 @@ def test_manual_search_index(demo_files, db):
         "ORDER BY rank LIMIT 3")).all()
     assert rows and "No carbonation" in rows[0][0]
     assert db.exec(select(ManualChunk)).first() is not None
-    # Porter stemming: "leaking" in a description matches the word "leak" in the query.
-    hits = db.execute(text("SELECT count(*) FROM tickets_fts WHERE tickets_fts MATCH 'leak'")).scalar()
+    # Porter stemming: the query "leaking" finds manual sections titled "Leaks".
+    titles = [r[0] for r in db.execute(text(
+        "SELECT section_title FROM manual_chunks_fts WHERE manual_chunks_fts MATCH 'leaking'")).all()]
+    assert any(t.endswith("> Leaks") for t in titles)
+    # Past ticket descriptions are searchable too.
+    hits = db.execute(text("SELECT count(*) FROM tickets_fts WHERE tickets_fts MATCH 'warm'")).scalar()
     assert hits > 0
 
 

@@ -53,12 +53,15 @@ class Company(SQLModel, table=True):
 
 
 class User(SQLModel, table=True):
-    """Someone in the "Log in as" picker. There is no real authentication."""
+    """A person who logs in. Usernames are unique across all companies, since
+    the login page doesn't ask which company you belong to."""
 
     __tablename__ = "users"
 
     id: int | None = Field(default=None, primary_key=True)
     company_id: int = Field(foreign_key="companies.id", index=True)
+    username: str = Field(unique=True, index=True)
+    password_hash: str
     name: str
     role: str  # "manager" or "technician"
 

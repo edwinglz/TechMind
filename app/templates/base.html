@@ -1,31 +1,16 @@
+{#- Bare page shell shared by every page: <head>, CDN scripts, body styling. -#}
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}TechMind{% endblock %}</title>
+  <meta name="description" content="TechMind turns vague equipment problem reports into diagnostic briefs before anyone is dispatched.">
   <script src="https://cdn.tailwindcss.com/3.4.16"></script>
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
   <link rel="stylesheet" href="/static/app.css">
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
-  <header class="bg-white border-b border-slate-200">
-    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-      <a href="/" class="flex items-center gap-2 min-w-0">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold">T</span>
-        <span class="font-semibold">TechMind</span>
-        {% if company %}<span class="hidden sm:inline text-slate-400 truncate">· {{ company.name }}</span>{% endif %}
-      </a>
-      {% if user %}
-      <div class="flex items-center gap-3 text-sm">
-        <span class="text-slate-600 truncate">{{ display_name(user) }}</span>
-        <a href="/login" class="text-indigo-600 hover:underline whitespace-nowrap">Switch user</a>
-      </div>
-      {% endif %}
-    </div>
-  </header>
-  <main class="max-w-6xl mx-auto px-4 py-6">
-    {% block content %}{% endblock %}
-  </main>
+  {% block body %}{% endblock %}
 </body>
 </html>

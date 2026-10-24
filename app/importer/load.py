@@ -15,12 +15,9 @@ from sqlmodel import Session
 from app.importer.manuals import split_markdown
 from app.importer.parse import ImportBundle
 from app.models import (Asset, Company, FixVariant, KnownIssue, ManualChunk, Part, Product, Site,
-                        Ticket, TicketStatus, User)
+                        Ticket, TicketStatus)
 from app.services.fix_variants import normalize_steps
 from app.services.search import index_manual_chunk, index_ticket
-
-# Every company gets the same "Log in as" people; there is no real auth.
-DEFAULT_USERS = [("Manager", "manager"), ("Ana", "technician"), ("Luis", "technician")]
 
 
 def _add(session: Session, obj):
@@ -31,7 +28,10 @@ def _add(session: Session, obj):
 
 
 def load_company(session: Session, bundle: ImportBundle, company_name: str | None = None) -> Company:
-    """Create a company from a bundle. The caller commits (or rolls back) the session."""
+    """Create a company from a bundle. The caller commits (or rolls back) the session.
+
+    User accounts are not part of the import format; the caller creates them.
+    """
     if not bundle.ok:
         raise ValueError("Import has errors: " + "; ".join(bundle.all_errors()))
 
@@ -39,9 +39,6 @@ def load_company(session: Session, bundle: ImportBundle, company_name: str | Non
     name = (company_name or bundle.profile.get("company_name") or "New company").strip()
     company = _add(session, Company(name=name, profile=bundle.profile, **bundle.settings))
     cid = company.id
-
-    for user_name, role in DEFAULT_USERS:
-        session.add(User(company_id=cid, name=user_name, role=role))
 
     site_ids = {}
     for r in rows["sites.csv"]:
