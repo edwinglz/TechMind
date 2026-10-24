@@ -1,17 +1,35 @@
 part_id,name,compatible_models,unit_price,in_stock
-P-CPUMP,Carbonator pump motor assembly,CI-200;RC-100,285.00,2
-P-CHKV,Carbonator pump inlet check valve,CI-200;RC-100,18.50,6
-P-STRN,Carbonator water inlet strainer screen,CI-200;RC-100,9.75,10
-P-VSEAL,Valve seal and O-ring kit,CI-200;DI-8;TS-500,12.40,25
-P-NOZ,Nozzle and diffuser set,CI-200;DI-8;TS-500,24.00,12
-P-SOL,Valve solenoid coil (24V),CI-200;DI-8;TS-500,46.00,5
+P-CPUMP,Carbonator pump motor assembly,CI-200,285.00,2
+P-CHKV,Carbonator pump inlet check valve,CI-200,18.50,6
+P-STRN,Water inlet strainer screen,CI-200;TS-500,9.75,10
+P-VSEAL,Valve seal and O-ring kit,CI-200;TS-500,12.40,25
+P-NOZ,Nozzle and diffuser set,CI-200;TS-500,24.00,12
+P-SOL,Valve solenoid coil (24V),CI-200;TS-500,46.00,5
 P-AGIT,Ice agitator motor,CI-200,168.00,1
 P-ICECH,Ice chute and gate assembly,CI-200,56.00,3
-P-DRAIN,Ice bin drain tube kit,CI-200;DI-8,14.00,8
-P-BIBC,Bag-in-box connector,CI-200;DI-8;TS-500,11.25,20
-P-BIBP,Bag-in-box syrup pump,CI-200;DI-8;TS-500,132.00,3
-P-REG2,CO2 secondary regulator,CI-200;DI-8;TS-500;RC-100,89.00,2
-P-WFILT,Water filter cartridge,CI-200;RC-100,38.00,9
-P-RELV,Carbonator tank relief valve,CI-200;RC-100,22.00,4
+P-DRAIN,Ice bin drain tube kit,CI-200,14.00,8
+P-BIBC,Bag-in-box connector,CI-200;TS-500,11.25,20
+P-BIBP,Bag-in-box syrup pump,CI-200;TS-500,132.00,3
+P-REG2,CO2 secondary regulator,CI-200;TS-500,89.00,2
+P-WFILT,Water filter cartridge,CI-200;TS-500;IM-500,38.00,9
+P-RELV,Carbonator tank relief valve,CI-200,22.00,4
 P-TSFAN,TS-500 condenser fan motor,TS-500,74.00,2
 P-TSPSU,TS-500 power supply,TS-500,120.00,1
+P-THCPL,Pilot thermocouple,EF-40;FG-36,28.00,6
+P-GASV,Fryer gas control valve,EF-40,210.00,1
+P-HILIM,Fryer high-limit switch,EF-40,64.00,3
+P-FTSTAT,Fryer thermostat probe,EF-40,85.00,2
+P-IGNT,Spark igniter,EF-40;FG-36,32.00,5
+P-GTSTAT,Griddle thermostat,FG-36,118.00,2
+P-ORIF,Burner orifice set,FG-36,19.00,4
+P-IMAF,Ice machine front air filter,IM-500,22.00,6
+P-IMWIV,Ice machine water inlet valve,IM-500,74.00,2
+P-IMSCL,Ice machine scale remover (1 gal),IM-500,31.00,8
+P-DFTMR,Defrost timer,WC-810,58.00,3
+P-EVFAN,Evaporator fan motor,WC-810,96.00,2
+P-GSKT,Walk-in door gasket,WC-810,145.00,1
+P-CDFAN,Condenser fan motor,WC-810;RT-5,138.00,2
+P-CAP,Run capacitor,WC-810;RT-5,27.00,10
+P-CONT,Compressor contactor,WC-810;RT-5,42.00,4
+P-RFRG,Refrigerant recharge (per lb),WC-810;RT-5,65.00,20
+P-HVFLT,Return-air filter set,RT-5,36.00,12

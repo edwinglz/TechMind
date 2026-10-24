@@ -26,7 +26,7 @@ The profile is injected into the AI prompt and into every page template. Swappin
 | `app/routes/` | One module per page area |
 | `app/templates/` | HTML pages (Tailwind + HTMX from CDNs, no build step) |
 | `demo_data/` | The fictional demo company, in the import format |
-| `scripts/generate_demo_history.py` | Builds and checks `demo_data/ticket_history.csv` |
+| `scripts/generate_demo_history.py` | Builds and checks `demo_data/assets.csv` and `demo_data/ticket_history.csv` |
 | `tests/` | pytest suite |
 
 ## Import: how a company's data gets in

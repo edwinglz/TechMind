@@ -1,5 +1,9 @@
 \# Project: TechMind: AI diagnostic prep for equipment service technicians
 
+> **Amendments agreed with the product owner (2026-10-24).** These override the text below; details are in docs/DECISIONS.md.
+> - The demo company runs a full range of quick-service equipment, not just fountain machines: beverage dispensers, fryers, griddles, ice machines, walk-in coolers, and rooftop HVAC. The fountain dispenser is the subject of the demo report only.
+> - Historical tickets have no photos.
+
 
 
 \## Context

@@ -1,30 +1,40 @@
 {
   "company_name": "Kestrel Burger Co.",
-  "industry": "fast-food beverage equipment (fountain drink machines)",
+  "industry": "quick-service restaurant equipment (beverage, cooking, ice, refrigeration, HVAC)",
   "labels": {
     "reporter": "store staff",
     "reporters": "store staff",
     "site": "store",
     "sites": "stores",
-    "asset": "machine",
-    "assets": "machines"
+    "asset": "equipment",
+    "assets": "equipment"
   },
   "self_fix_allowed": [
     "replacing an empty bag-in-box syrup bag",
-    "checking that the CO2 tank valve is open and the gauge isn't in the red",
-    "checking the ice level in the ice bin",
-    "cleaning or soaking nozzles and diffusers",
-    "checking the power plug and resetting a tripped breaker once"
+    "checking that a CO2 tank valve is open and the gauge isn't in the red",
+    "checking ice levels in ice bins and dispensers",
+    "cleaning or soaking beverage nozzles",
+    "checking power plugs and resetting a tripped breaker once",
+    "checking that cooler and freezer doors close and seal and nothing blocks them",
+    "rinsing or replacing tool-free air filters (ice machine front filter, HVAC return-air filter)",
+    "replacing thermostat batteries"
   ],
   "self_fix_forbidden": [
-    "adjusting the CO2 regulator",
+    "adjusting any gas valve or CO2 regulator, or relighting a gas pilot",
     "opening any panel or cover that needs a tool",
-    "any electrical work"
+    "any electrical work beyond resetting a breaker once",
+    "handling hot oil outside the normal filtering routine",
+    "going on the roof",
+    "handling refrigerant"
   ],
   "safety_topics": [
+    "gas leaks: if anyone smells gas, don't touch switches or flames, get everyone out, and call the gas company",
+    "hot oil: burns and fire; never put water on an oil fire; let fryers cool before any work",
     "CO2 asphyxiation in enclosed spaces: if a CO2 leak is suspected (hissing, headache, dizziness), ventilate and leave the area",
-    "high-pressure gas: never loosen fittings on a pressurized CO2 line or carbonator",
-    "water near electrical parts: unplug before touching wet areas around the machine",
-    "sanitation: mold in nozzles and a dirty ice bin are a health hazard; sanitize before serving"
+    "high-pressure gas: never loosen fittings on a pressurized CO2 line",
+    "water near electrical parts: unplug before touching wet areas around equipment",
+    "food safety: coolers must hold 41 degrees F or below; move and log food when a cooler runs warm",
+    "sanitation: mold in nozzles, ice bins, or ice machines is a health hazard; sanitize before serving",
+    "roof access and falls: only technicians go on the roof"
   ]
 }

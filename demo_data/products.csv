@@ -1,5 +1,8 @@
 model_id,manufacturer,model_name,category,manual_file
-CI-200,Glacier Peak Dispense,CI-200 Countertop Ice/Beverage Dispenser,fountain dispenser,glacierpeak_ci200.md
-DI-8,Glacier Peak Dispense,DI-8 Drop-In Dispenser,fountain dispenser,glacierpeak_di8.md
-TS-500,Fizzwell Systems,FlowTouch TS-500 Self-Serve Dispenser,fountain dispenser,fizzwell_ts500.md
-RC-100,Fizzwell Systems,RC-100 Remote Carbonator,carbonation system,fizzwell_rc100.md
+CI-200,Glacier Peak Dispense,CI-200 Countertop Ice/Beverage Dispenser,beverage dispenser,glacierpeak_ci200.md
+TS-500,Fizzwell Systems,FlowTouch TS-500 Self-Serve Beverage Dispenser,beverage dispenser,fizzwell_ts500.md
+EF-40,Emberline Kitchen,EF-40 Gas Fryer,fryer,emberline_ef40.md
+FG-36,Emberline Kitchen,FG-36 Gas Flat-Top Griddle,griddle,emberline_fg36.md
+IM-500,Polar Crest,IM-500 Air-Cooled Ice Machine,ice machine,polarcrest_im500.md
+WC-810,Coldvault,WC-810 Walk-In Cooler System,refrigeration,coldvault_wc810.md
+RT-5,Airmark Climate,RT-5 Rooftop HVAC Unit,HVAC,airmark_rt5.md

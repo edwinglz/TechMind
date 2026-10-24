@@ -14,9 +14,9 @@
 ## What works now
 
 - `uvicorn app.main:app --reload` starts the app. On first start it creates `data/techmind.db` and loads the demo company:
-  - 8 stores, 22 machines, 4 models, 16 parts
-  - 24 known issues, 25 fix variants
-  - 78 manual sections (indexed for search), 120 past tickets (indexed for search)
+  - 8 stores, 58 units of equipment, 7 models (beverage, fryer, griddle, ice machine, walk-in, HVAC), 34 parts
+  - 31 known issues, 32 fix variants
+  - manual sections and 125 past tickets, both indexed for search
 - "Log in as" picker (Manager, Tech: Ana, Tech: Luis) with a cookie; pages redirect to it when nobody is logged in.
 - The home page shows the company's counts and profile in its own words ("Stores", "Machines", "Fixed by store staff").
 - The importer validates every file and reports errors with row numbers. It is used for seeding now and gets its own upload page in Phase 2.

@@ -32,8 +32,8 @@ def test_demo_data_is_valid(demo_files):
     assert bundle.ok, bundle.all_errors()
     counts = {name: report.rows for name, report in bundle.reports.items()}
     assert counts == {
-        "profile.json": 1, "settings.csv": 1, "sites.csv": 8, "products.csv": 4, "assets.csv": 22,
-        "parts.csv": 16, "known_issues.csv": 24, "ticket_history.csv": 120, "manuals": 4,
+        "profile.json": 1, "settings.csv": 1, "sites.csv": 8, "products.csv": 7, "assets.csv": 58,
+        "parts.csv": 34, "known_issues.csv": 31, "ticket_history.csv": 125, "manuals": 7,
     }
     assert not any(r.warnings for r in bundle.reports.values())
 
@@ -43,7 +43,7 @@ def test_load_demo_company(demo_files, db):
     db.commit()
     assert company.name == "Kestrel Burger Co."
     assert company.trip_fee == 95.0
-    assert db.exec(select(Ticket)).all().__len__() == 120
+    assert db.exec(select(Ticket)).all().__len__() == 125
 
     # The carbonator issue has its documented fix plus the newer one found in history.
     issue = db.exec(select(KnownIssue).where(KnownIssue.ref == "KI-CI-03")).one()
@@ -59,7 +59,7 @@ def test_load_demo_company(demo_files, db):
 
     # Self-fixed tickets are not attached to a technician fix variant.
     self_fixed = db.exec(select(Ticket).where(Ticket.resolved_by_reporter == True)).all()  # noqa: E712
-    assert len(self_fixed) == 36
+    assert len(self_fixed) == 37
     assert all(t.fix_variant_id is None for t in self_fixed)
 
 

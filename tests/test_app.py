@@ -38,7 +38,7 @@ def test_home_uses_company_labels(client):
     _login(client, "Manager")
     page = client.get("/").text
     assert "Kestrel Burger Co." in page
-    assert "Stores" in page and "Machines" in page and "Fixed by store staff" in page
+    assert "Stores" in page and "Equipment" in page and "Fixed by store staff" in page
     assert "30%" in page
     assert "$95.00" in page
 
