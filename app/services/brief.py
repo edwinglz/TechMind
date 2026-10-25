@@ -16,6 +16,7 @@ company's rates; the AI only picks part ids and minutes.
 """
 
 import logging
+import os
 
 from sqlmodel import Session, select
 
@@ -261,6 +262,26 @@ def _enrich(data: dict, ctx: Context) -> dict:
 
 # ---------- entry point ----------
 
+LIVE_BRIEFS_PER_HOUR = int(os.getenv("LIVE_BRIEFS_PER_HOUR", "40"))
+
+
+def _live_budget_left(session: Session) -> bool:
+    """A public demo link can be clicked by anyone, so cap paid Claude calls per hour.
+    Past the cap, briefs come from the mock engine until the hour rolls over."""
+    from datetime import timedelta
+
+    from sqlmodel import func
+
+    from app.models import utcnow
+
+    since = utcnow() - timedelta(hours=1)
+    used = session.exec(select(func.count(Brief.id)).where(Brief.ai_mode == "live", Brief.created_at >= since)).one()
+    if used >= LIVE_BRIEFS_PER_HOUR:
+        log.warning("live brief cap reached (%d in the last hour); using the mock engine", used)
+        return False
+    return True
+
+
 def generate(session: Session, ticket: Ticket, actor_id: int | None, refine: bool = False) -> Brief:
     company = session.get(Company, ticket.company_id)
     labels = labels_for(company)
@@ -272,7 +293,7 @@ def generate(session: Session, ticket: Ticket, actor_id: int | None, refine: boo
 
     mode, model, tokens_in, tokens_out, is_fallback = "mock", "", 0, 0, False
     data = None
-    if settings.ai_mode == "live":
+    if settings.ai_mode == "live" and _live_budget_left(session):
         from app.ai import client, prompts
 
         note = None

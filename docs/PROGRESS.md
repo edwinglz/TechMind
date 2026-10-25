@@ -8,7 +8,7 @@
 - [x] **Phase 3: Intake and brief.** Intake form (dictation, photo, service mode), retrieval, brief generation (mock from company data; live via Claude, untested without a key), brief view with costs, progress steps, repeat-failure banner, unknown-model handling.
 - [x] **Phase 4: Review, technician, close.** Self-fix approval flow, assignment, mobile technician view, questions checklist, Refine, chat, close-ticket form.
 - [x] **Phase 5: Adaptability.** Fix variants with Haiku matching, trends, asset pages, history page, dispatches-avoided counter, CSV export.
-- [ ] **Phase 6: Deploy and polish.** Render deploy, live-call fallback, demo rehearsal.
+- [ ] **Phase 6: Deploy and polish.** `render.yaml` blueprint, Python version pinned, hourly cap on live briefs (done); deploy on Render and rehearse (to do).
 - [ ] Stretch: second demo company (laptop repair shop); cross-model insights.
 
 ## What works now

@@ -147,3 +147,8 @@ One entry per significant choice: what we decided, what else we considered, and 
 - **Decided:** `/register` takes the company name, the manager's account and the files together. A review page shows each file's rows, errors (with spreadsheet row numbers) and warnings; corrected files can be uploaded on the same page, and only a clean import can be created. Pending uploads wait in `UPLOAD_DIR/imports/<token>`.
 - **Alternatives:** create the company first and import into it later; write rows as they're validated.
 - **Why:** matches the product idea (a manager registers their company and brings their data), and a half-imported company is worse than none. Technicians are added afterwards on the Team page, since accounts aren't part of the import format.
+
+## Render free plan with a Blueprint, and a cap on live briefs
+- **Decided:** deploy with `render.yaml` on Render's free plan; Python pinned to 3.13 in `.python-version` (Render's default for new services is newer than what we test on); at most `LIVE_BRIEFS_PER_HOUR` (40) Claude briefs per hour, after which mock briefs are used.
+- **Alternatives:** Railway; a paid plan with a persistent disk.
+- **Why:** free, deploys straight from GitHub on every push, and the ephemeral disk is fine because the demo re-seeds itself. The cap protects the small API budget from a public link.

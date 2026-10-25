@@ -1,0 +1,28 @@
+# Render Blueprint: one free web service running the FastAPI app.
+# Create it in Render with New > Blueprint and pick this repository.
+# The free plan's disk is wiped on every restart, which is fine here: the demo
+# company is seeded again on startup (see app/seed.py).
+services:
+  - type: web
+    name: techmind
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: AI_MODE
+        value: live
+      - key: ANTHROPIC_API_KEY
+        sync: false          # Render asks for it when the Blueprint is created
+      - key: DEMO_PASSWORD
+        sync: false          # password for manager, ana and luis
+      - key: SECRET_KEY
+        generateValue: true  # keeps people logged in across restarts
+      - key: AS_OF_DATE
+        value: "2026-10-24"  # the demo data's trends are relative to this date
+      - key: LIVE_BRIEFS_PER_HOUR
+        value: "40"          # caps Claude calls from the public link
+      - key: MOCK_DELAY_SECONDS
+        value: "1.6"

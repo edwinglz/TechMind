@@ -2,7 +2,7 @@
 
 TechMind turns vague equipment problem reports ("it's not working", "the drinks are flat") into a diagnostic brief before anyone is dispatched: likely causes with step-by-step fixes, cost estimates, questions to ask the reporter, and safe fixes the reporter can try first. Every closed ticket updates the company's knowledge base, so the most common issues and the best-performing fixes stay current. It works for any company that maintains equipment or products (restaurants, HVAC contractors, laptop repair shops, fleets). The demo company is a fictional burger chain whose stores each run beverage dispensers, fryers, griddles, ice machines, walk-in coolers, and rooftop HVAC.
 
-> Status: the full loop works (report → brief → self-fix or dispatch → technician → close → insights), and new companies can register and import their data. Still to do: deployment. See [docs/PROGRESS.md](docs/PROGRESS.md).
+> Status: the full loop works (report → brief → self-fix or dispatch → technician → close → insights), and new companies can register and import their data. Deployable to Render with the included `render.yaml`. See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Setup
 
@@ -44,6 +44,20 @@ All three use the password in `DEMO_PASSWORD` from `.env`. If it's blank, a rand
 
 To reset everything (also needed after a database schema change), stop the server, delete `data/techmind.db`, and start it again.
 
+## Deploy (Render, free)
+
+The repo includes `render.yaml`, a Render Blueprint for one free web service.
+
+1. Sign in at [render.com](https://render.com) with GitHub.
+2. **New** → **Blueprint**, pick this repository, and connect it.
+3. Render asks for two values: `ANTHROPIC_API_KEY` (your key) and `DEMO_PASSWORD` (the password for `manager`, `ana` and `luis`). Everything else is preset: live mode, `AS_OF_DATE=2026-10-24`, a generated `SECRET_KEY`, and a cap of 40 Claude briefs per hour.
+4. Click **Apply**. The first build takes a few minutes; the site is at `https://techmind-<something>.onrender.com`.
+
+Every push to `main` redeploys automatically. Things to know about the free plan:
+- The site **sleeps after 15 minutes** without visitors and takes about a minute to wake up. Open it a few minutes before presenting.
+- The disk is wiped on every restart, redeploy or sleep, so the demo company is re-seeded with an empty board each time. Reports created there, and companies registered there, don't survive a restart.
+- Anyone with the link can use it. Live briefs fall back to mock briefs after 40 in an hour, and a spend limit in the Claude Console caps the rest.
+
 ## Tests
 
 ```powershell
@@ -71,6 +85,7 @@ To reset everything (also needed after a database schema change), stop the serve
 | `ANTHROPIC_API_KEY` | Needed only in live mode |
 | `DATABASE_URL` | SQLite location, default `sqlite:///./data/techmind.db` |
 | `UPLOAD_DIR` | Where photos and import files are stored, default `uploads` |
+| `LIVE_BRIEFS_PER_HOUR` | Most live briefs per hour across all users (default 40); beyond it, mock briefs are used |
 | `MOCK_DELAY_SECONDS` | Pause before a mock brief appears, so the "Preparing the brief" steps can be seen (default 1.6) |
 | `AS_OF_DATE` | Optional `YYYY-MM-DD` "today" for trend math; blank = real date |
 | `SECRET_KEY` | Signs the login cookie; blank = random per start (everyone logged out on restart) |
