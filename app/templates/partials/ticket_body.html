@@ -1,5 +1,6 @@
 {% from "macros.html" import gauge %}
-<div id="ticket-body">
+<div id="ticket-body" hx-indicator="#busy-bar">
+  <div class="busy-bar htmx-indicator" id="busy-bar" aria-hidden="true"></div>
   {# ---------- the tag header ---------- #}
   <header class="ticket-head {{ 'band-danger' if brief and brief.data.context.repeat_failure and ticket.status != 'closed' else status.band }}">
     <div class="spread">
@@ -120,8 +121,8 @@
       <section class="sheet">
         <div class="sheet-head"><h2>Chat</h2><p class="small muted">Between the manager and the technician on this ticket.</p></div>
         <div class="sheet-body">
-          <div hx-get="/app/tickets/{{ ticket.id }}/chat" hx-trigger="load, every 4s" hx-swap="innerHTML" id="chat-poll"></div>
-          <form class="chat-form" hx-post="/app/tickets/{{ ticket.id }}/chat" hx-target="#chat-poll" hx-swap="innerHTML" hx-on::after-request="this.reset()">
+          <div hx-get="/app/tickets/{{ ticket.id }}/chat" hx-trigger="load, every 4s" hx-swap="innerHTML" id="chat-poll" hx-indicator="#chat-poll"></div>
+          <form class="chat-form" hx-indicator="#chat-poll" hx-post="/app/tickets/{{ ticket.id }}/chat" hx-target="#chat-poll" hx-swap="innerHTML" hx-on::after-request="this.reset()">
             <label class="sr-only" for="chat-text">Message</label>
             <input type="text" id="chat-text" name="text" placeholder="Write a message" autocomplete="off">
             <button class="btn small">Send</button>

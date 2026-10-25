@@ -133,3 +133,12 @@ One entry per significant choice: what we decided, what else we considered, and 
 - **Decided:** when the manager records that the reporter's self-fix didn't work, the brief is regenerated with that information.
 - **Alternatives:** wait for someone to press Refine.
 - **Why:** the most useful moment for a new ranking is right before dispatching.
+
+## Two kinds of questions for the reporter
+- **Decided:** each question is either `yes_no` (Yes / No / Not sure buttons) or `reading` (a short typed value such as a temperature or an error code). The live prompt asks for one fact per question and never for things the reporter can't see.
+- **Alternatives:** yes/no only; free text for every question.
+- **Why:** first live test: Claude asked for display temperatures and combined two questions in one, which Yes/No buttons can't answer. Readings are often the most useful facts, so they get a box; everything else stays one tap.
+
+## Live briefs are kept short, and a cut-off reply is asked again from scratch
+- **Decided:** the prompt caps lengths (2-sentence summary and evidence, at most 4 causes and 6 steps per list), `max_tokens` is 8000, and a reply cut off at the limit is re-requested with a "keep it short" reminder instead of being sent back for correction.
+- **Why:** first live test: a reply hit the 4000-token limit mid-JSON and the correction round trip took over a minute. Long briefs are also worse on a phone.

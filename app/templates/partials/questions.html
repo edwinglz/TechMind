@@ -2,7 +2,7 @@
 {% set answers = ticket.answers or {} %}
 <section class="sheet" id="questions">
   <div class="sheet-head"><h2>Ask the {{ L.reporter }}</h2>
-    <p class="small muted">Best question first. Tap an answer as you go, then refine.</p></div>
+    <p class="small muted">Best question first. Record each answer as you go, then refine.</p></div>
   <div class="sheet-body">
     <ol class="questions">
       {% for q in qs %}
@@ -10,6 +10,15 @@
       <li class="q {{ 'answered' if a }}">
         <div class="q-text">{{ q.question }}</div>
         <div class="q-why">{{ q.why }}</div>
+        {% if q.kind == "reading" %}
+        <form class="q-reading" hx-post="/app/tickets/{{ ticket.id }}/answer" hx-target="#questions" hx-swap="outerHTML">
+          <input type="hidden" name="question" value="{{ q.question }}">
+          <input type="hidden" name="kind" value="reading">
+          <label class="sr-only" for="q{{ loop.index }}">Answer</label>
+          <input type="text" id="q{{ loop.index }}" name="answer" value="{{ a or '' }}" placeholder="What they read out, e.g. 382 °F" autocomplete="off">
+          <button class="btn small {{ 'secondary' if a }}">{{ "Update" if a else "Save" }}</button>
+        </form>
+        {% else %}
         <div class="q-actions">
           {% for value, label in [("yes", "Yes"), ("no", "No"), ("unsure", "Not sure")] %}
           <button class="{{ value }}" aria-pressed="{{ 'true' if a == value else 'false' }}"
@@ -17,12 +26,15 @@
                   hx-vals='{{ {"question": q.question, "answer": value} | tojson }}'>{{ label }}</button>
           {% endfor %}
         </div>
+        {% endif %}
       </li>
       {% endfor %}
     </ol>
     {% set answered = qs | selectattr("question", "in", answers) | list | length %}
-    <button class="btn {{ 'tag' if answered else 'secondary' }} block" style="margin-top:0.75rem" {% if not answered %}disabled{% endif %}
-            hx-post="/app/tickets/{{ ticket.id }}/refine" hx-target="#ticket-body" hx-swap="outerHTML">
-      Refine diagnosis{% if answered %} with {{ answered }} answer{{ "s" if answered > 1 }}{% endif %}</button>
+    <button class="btn {{ 'tag' if answered else 'secondary' }} block busy-btn" style="margin-top:0.75rem" {% if not answered %}disabled{% endif %}
+            hx-post="/app/tickets/{{ ticket.id }}/refine" hx-target="#ticket-body" hx-swap="outerHTML" hx-disabled-elt="this">
+      <span class="idle">Refine diagnosis{% if answered %} with {{ answered }} answer{{ "s" if answered > 1 }}{% endif %}</span>
+      <span class="busy">{% if ai_live() %}Claude is re-reading the case, about 20 seconds{% else %}Refining{% endif %}</span>
+    </button>
   </div>
 </section>

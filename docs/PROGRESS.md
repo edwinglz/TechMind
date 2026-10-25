@@ -26,11 +26,11 @@
 ## Next
 
 - Phase 2: the Import page (upload, preview with row counts and errors, load) and catalog pages.
-- Try live mode with an API key and tune `app/ai/prompts.py`.
+- Keep tuning `app/ai/prompts.py` with live runs.
 - Phase 6: deploy and rehearse.
 
 ## Known issues
 
 - The demo patterns (rising/fading, repeat failure) are computed relative to 2026-10-24. If the demo runs much later, set `AS_OF_DATE=2026-10-24` in `.env`.
-- Live mode hasn't been run yet (no API key). Mock mode is fully working.
+- Live mode works (first test on 2026-10-24). A brief takes about 20 to 40 seconds; the page shows a progress bar and a busy button meanwhile.
 - Mock safety warnings match on words, so they occasionally include a loosely related hazard; live mode judges relevance properly.

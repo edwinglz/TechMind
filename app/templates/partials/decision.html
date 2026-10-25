@@ -34,7 +34,7 @@
         <input type="text" name="note" placeholder="“Tank was full, valve open”"></label>
       <div class="two" style="gap:0.5rem">
         <button class="btn good" name="resolved" value="yes">It worked, close it</button>
-        <button class="btn bad" name="resolved" value="no">Didn't work</button>
+        <button class="btn bad busy-btn" name="resolved" value="no"><span class="idle">Didn't work</span><span class="busy">Re-ranking…</span></button>
       </div>
       <p class="small muted">If it didn't work, the brief re-ranks the causes right away so you can dispatch.</p>
     </form>

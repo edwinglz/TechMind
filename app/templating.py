@@ -59,6 +59,15 @@ templates.env.filters["money"] = _money
 templates.env.globals["display_name"] = display_name
 
 
+def _ai_live() -> bool:
+    from app.config import settings
+
+    return settings.ai_mode == "live"
+
+
+templates.env.globals["ai_live"] = _ai_live
+
+
 def render(request: Request, name: str, user: User | None = None, company: Company | None = None,
            status_code: int = 200, **context):
     return templates.TemplateResponse(

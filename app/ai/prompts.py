@@ -21,12 +21,18 @@ Rules:
 - When a cause is one of the known issues, set `issue_id` to its id and use its CURRENT RECOMMENDED FIX as `fix_steps`.
 - `part_ids` must only contain ids from the provided parts list. Never invent part numbers, manual sections or ticket ids.
 - `estimated_minutes` should follow the known issue's typical time when there is one.
-- Questions for the {reporter}: 3 to 5, short, answerable over the phone in seconds by a non-technical person. Put the question that separates the most likely causes first. `rules_in_or_out` lists the cause names each answer helps confirm or eliminate.
+- Questions for the {reporter}: 3 or 4, each answerable over the phone in seconds by a non-technical person standing at the equipment. Put the question that separates the most likely causes first. `rules_in_or_out` lists the cause names each answer helps confirm or eliminate.
+  - Ask about ONE thing per question. Never combine two questions with "and" or "or".
+  - Prefer `"kind": "yes_no"`: a question whose honest answer is yes or no ("Is the pump humming nonstop?").
+  - Use `"kind": "reading"` only for a short value they can read off the equipment, such as a temperature, a gauge or an error code ("What temperature does the display show?").
+  - Never ask about things they can't see or wouldn't know, such as when a part was last serviced.
+  - Don't repeat a question that was already answered; build on the answer instead.
 - Self-fix: only steps from this allowed list, adapted to the situation: {allowed}. NEVER include anything from this forbidden list: {forbidden}. Set `applicable` to false if no allowed step fits. `targets` lists the known issue ids the self-fix could resolve.
 - Safety: include a warning for every one of these company safety topics that is relevant to a likely cause: {safety}.
 - If the photo shows something relevant, describe it in `image_findings`; otherwise leave it empty.
 - If answers or a failed self-fix rule causes out, lower them or drop them and say why in `evidence`.
 - `missing_info`: what would help that we don't have yet.
+- Be brief; a technician reads this on a phone. Summary: at most 2 sentences. Evidence: at most 2 sentences per cause. At most 6 steps per list. No more than 4 causes.
 
 Reply with ONE JSON object and nothing else, matching this shape:
 {{
@@ -37,7 +43,7 @@ Reply with ONE JSON object and nothing else, matching this shape:
       "sources": [{{"type": "manual|past_ticket|known_issue|asset_history", "ref": "..."}}],
       "confirm_steps": ["..."], "fix_steps": ["..."], "part_ids": ["..."], "estimated_minutes": 30}}],
   "reporter_self_fix": {{"applicable": true, "steps": ["..."], "risk_note": "...", "targets": ["KI-.."]}},
-  "questions_for_reporter": [{{"question": "...", "why": "...", "rules_in_or_out": ["cause name"]}}],
+  "questions_for_reporter": [{{"question": "...", "why": "...", "kind": "yes_no|reading", "rules_in_or_out": ["cause name"]}}],
   "safety_warnings": ["..."],
   "missing_info": ["..."]
 }}"""

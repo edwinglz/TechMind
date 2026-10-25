@@ -350,5 +350,19 @@ table.data tr.group td { background: var(--sheet-2); font: 600 1rem/1.2 var(--co
 .demo-tag { margin-top: 1.5rem; width: min(100%, 420px); }
 .demo-tag .tag-card { color: var(--ink); }
 
+/* Busy states while the server works (a live brief can take 20 seconds or more). */
 .htmx-indicator { display: none; }
 .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline-flex; }
+.busy-btn .busy { display: none; }
+.busy-btn.htmx-request .idle, .htmx-request .busy-btn .idle { display: none; }
+.busy-btn.htmx-request .busy, .htmx-request .busy-btn .busy { display: inline; }
+.busy-btn.htmx-request { opacity: 1; cursor: progress; }
+.busy-bar { position: fixed; left: 0; right: 0; top: 0; height: 4px; z-index: 50; overflow: hidden; background: var(--tag-soft); }
+.busy-bar.htmx-request { display: block; }
+.busy-bar::after { content: ""; position: absolute; top: 0; bottom: 0; width: 35%; background: var(--tag); animation: busy 1.1s ease-in-out infinite; }
+@keyframes busy { from { left: -35%; } to { left: 100%; } }
+.prep-steps li.working::before { border-color: var(--tag); background: var(--tag); animation: pulse 1s ease-in-out infinite alternate; }
+@keyframes pulse { from { opacity: 0.35; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .busy-bar::after { animation: none; left: 0; width: 100%; } .prep-steps li.working::before { animation: none; } }
+.q-reading { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+.q-reading input { min-height: 38px; padding: 0.4rem 0.6rem; }

@@ -5,6 +5,7 @@
     <li>Checking known issues and what fixed them</li>
     <li>Searching past tickets for similar reports</li>
     {% if asset %}<li>Looking at this unit's own history</li>{% endif %}
-    {% if ticket.photo_path %}<li>Looking at the photo</li>{% else %}<li>Writing questions for the {{ L.reporter }}</li>{% endif %}
+    {% if ticket.photo_path %}<li>Looking at the photo</li>{% endif %}
+    <li class="working">Writing the brief{% if ai_live() %}. Claude usually takes 20 to 40 seconds{% endif %}</li>
   </ul>
 </section>

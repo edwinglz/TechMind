@@ -75,12 +75,19 @@ def diagnose(system: str, user: str, photo_path: str | None) -> tuple[BriefData,
     messages = [{"role": "user", "content": content}]
     tokens_in = tokens_out = 0
     for attempt in (1, 2):
-        reply = client.messages.create(model=BRIEF_MODEL, max_tokens=4000, system=system, messages=messages)
+        reply = client.messages.create(model=BRIEF_MODEL, max_tokens=8000, system=system, messages=messages)
         tokens_in += reply.usage.input_tokens
         tokens_out += reply.usage.output_tokens
         log.info("brief call %d: %d input tokens, %d output tokens", attempt, reply.usage.input_tokens,
                  reply.usage.output_tokens)
         text = "".join(block.text for block in reply.content if block.type == "text")
+        if reply.stop_reason == "max_tokens":
+            # Cut off mid-JSON. Sending the broken text back would make the retry even longer,
+            # so ask again from scratch with a reminder to keep it short.
+            log.warning("brief reply was cut off at the token limit; asking again for a shorter one")
+            messages = [{"role": "user", "content": content + [{"type": "text", "text":
+                         "Your previous answer was too long and got cut off. Keep every field short."}]}]
+            continue
         try:
             return BriefData.model_validate(_json_from(text)), tokens_in, tokens_out
         except (ValueError, ValidationError) as error:

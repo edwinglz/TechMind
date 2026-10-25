@@ -132,3 +132,29 @@ def test_technicians_only_see_their_own_jobs(client):
     _login(client, "luis")
     assert client.get(f"/app/tickets/{ticket_id}").status_code == 403
     assert client.get("/app/insights").status_code == 403
+
+
+def test_reading_questions_take_a_typed_answer(client):
+    """Questions like "what temperature does the display show?" are answered by typing a value."""
+    _login(client, "manager")
+    with Session(engine) as s:
+        asset = s.exec(select(Asset).where(Asset.ref == "A-0101")).first()
+    response = client.post("/app/tickets", data={"site_id": asset.site_id, "asset_id": asset.id,
+                                                 "description": "Drinks are warm"}, follow_redirects=False)
+    ticket_id = int(response.headers["location"].rsplit("/", 1)[1])
+    client.post(f"/app/tickets/{ticket_id}/brief")
+    with Session(engine) as s:  # turn the first question into a reading, as live mode can
+        brief = s.exec(select(Brief).where(Brief.ticket_id == ticket_id)).first()
+        data = dict(brief.data)
+        data["questions_for_reporter"] = [dict(data["questions_for_reporter"][0],
+                                               question="What temperature does the display show?", kind="reading")]
+        brief.data = data
+        s.add(brief)
+        s.commit()
+    page = client.get(f"/app/tickets/{ticket_id}").text
+    assert 'name="kind" value="reading"' in page
+    page = client.post(f"/app/tickets/{ticket_id}/answer", data={
+        "question": "What temperature does the display show?", "answer": "48 F", "kind": "reading"}).text
+    assert 'value="48 F"' in page and "Refine diagnosis with 1 answer" in page
+    with Session(engine) as s:
+        assert s.get(Ticket, ticket_id).answers["What temperature does the display show?"]["answer"] == "48 F"

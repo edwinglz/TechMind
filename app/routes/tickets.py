@@ -207,11 +207,17 @@ async def refine(request: Request, ticket_id: int, cur: Current = Depends(requir
 
 
 @router.post("/tickets/{ticket_id}/answer", response_class=HTMLResponse)
-def answer(request: Request, ticket_id: int, question: str = Form(...), answer: str = Form(...),
-           note: str = Form(""), cur: Current = Depends(require_login), session: Session = Depends(get_session)):
+def answer(request: Request, ticket_id: int, question: str = Form(...), answer: str = Form(""),
+           kind: str = Form("yes_no"), note: str = Form(""), cur: Current = Depends(require_login),
+           session: Session = Depends(get_session)):
     ticket = _ticket_or_404(session, cur, ticket_id)
-    current = (ticket.answers or {}).get(question, {}).get("answer")
-    svc.save_answer(session, ticket, cur.user.id, question, "clear" if current == answer else answer, note)
+    answer = answer.strip()[:200]
+    if kind == "reading":
+        value = answer or "clear"  # an empty box clears the reading
+    else:
+        current = (ticket.answers or {}).get(question, {}).get("answer")
+        value = "clear" if current == answer else answer  # tapping the chosen answer again un-selects it
+    svc.save_answer(session, ticket, cur.user.id, question, value, note)
     session.commit()
     brief = brief_service.latest_brief(session, ticket.id)
     return render(request, "partials/questions.html", user=cur.user, company=cur.company, ticket=ticket, brief=brief)

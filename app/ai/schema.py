@@ -38,6 +38,9 @@ class SelfFix(BaseModel):
 class Question(BaseModel):
     question: str
     why: str
+    # "yes_no": answered with Yes / No / Not sure. "reading": a short value the reporter reads
+    # off the equipment (a temperature, an error code), typed into a box.
+    kind: Literal["yes_no", "reading"] = "yes_no"
     rules_in_or_out: list[str] = Field(default_factory=list)  # cause names
 
 
