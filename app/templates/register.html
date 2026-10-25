@@ -1,0 +1,60 @@
+{% extends "public_base.html" %}
+{% block title %}Set up your company · TechMind{% endblock %}
+{% block content %}
+<div class="setup">
+  <div class="page-head">
+    <div>
+      <h1>Set up your company</h1>
+      <p class="muted">Create your manager account and upload your equipment data. You'll check everything before it's saved.</p>
+    </div>
+  </div>
+
+  {% if errors %}
+  <div class="error-box" role="alert" style="margin-bottom:1rem"><ul style="margin:0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+  {% endif %}
+
+  <form method="post" action="/register" enctype="multipart/form-data" class="setup-grid">
+    <section class="sheet">
+      <div class="sheet-body stack" style="--gap:1rem">
+        <h2>Your company</h2>
+        <label class="field"><span>Company name</span>
+          <input type="text" name="company_name" value="{{ values.company_name or '' }}" required placeholder="Kestrel Burger Co."></label>
+        <h2 style="margin-top:1.5rem">Your manager account</h2>
+        <label class="field"><span>Your name</span>
+          <input type="text" name="your_name" value="{{ values.your_name or '' }}" required autocomplete="name"></label>
+        <div class="two">
+          <label class="field"><span>Username</span>
+            <input type="text" name="username" value="{{ values.username or '' }}" required autocapitalize="none" autocomplete="username"></label>
+          <label class="field"><span>Password</span>
+            <input type="password" name="password" required minlength="8" autocomplete="new-password">
+            <span class="hint">At least 8 characters.</span></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="sheet">
+      <div class="sheet-body stack" style="--gap:1rem">
+        <h2>Your data</h2>
+        <p class="muted">Your stores or customer sites, the equipment you service, manuals, parts, known issues and past tickets. Upload the files one by one or as a single zip.</p>
+        <label class="photo-drop" style="display:block">
+          <span class="field-label">Files</span>
+          <input type="file" name="files" multiple accept=".csv,.json,.md,.zip,.txt">
+          <span class="hint" style="display:block">CSV, profile.json, Markdown manuals, or a zip with all of them.</span>
+        </label>
+        <p class="small">No files yet? <a href="/register-sample.zip">Download the sample company</a> to see the format, or upload it as is to try TechMind.</p>
+        <details class="format">
+          <summary>What goes in each file</summary>
+          <div class="stack small" style="--gap:0.6rem; margin-top:0.6rem">
+            <p><strong>profile.json</strong> (required): your industry, the words to use for sites, equipment and the person reporting, what they may safely try themselves, what they must never do, and the safety topics that matter.</p>
+            {% for name, cols in columns.items() %}
+            <p><strong>{{ name }}</strong>{% if name in required %} (required){% endif %}: {{ cols | join(", ") }}</p>
+            {% endfor %}
+            <p><strong>Manuals</strong>: one Markdown file per model, named in <em>products.csv</em>. Sections start with <code>##</code> headings.</p>
+          </div>
+        </details>
+        <button class="btn tag block">Check my data</button>
+      </div>
+    </section>
+  </form>
+</div>
+{% endblock %}

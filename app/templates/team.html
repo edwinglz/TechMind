@@ -1,0 +1,37 @@
+{% extends "app_base.html" %}
+{% block title %}Team · TechMind{% endblock %}
+{% block content %}
+<div class="setup">
+  {% if welcome %}
+  <div class="banner yellow" style="margin-bottom:1rem"><span><strong>{{ company.name }} is set up.</strong> Add the technicians you dispatch, then create your first report from <a href="/app/tickets/new">New report</a>.</span></div>
+  {% endif %}
+  <div class="page-head"><div><h1>Team</h1><p class="muted">Who can log in to {{ company.name }}.</p></div></div>
+  <div class="setup-grid">
+    <section class="sheet"><div class="sheet-body table-wrap">
+      <table class="data">
+        <thead><tr><th>Name</th><th>Username</th><th>Role</th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr><td>{{ u.name }}</td><td>{{ u.username }}</td><td>{{ "Manager" if u.role == "manager" else "Technician" }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div></section>
+
+    <form class="sheet" method="post" action="/app/team">
+      <div class="sheet-body stack" style="--gap:0.9rem">
+        <h2>Add someone</h2>
+        {% if added %}<div class="banner note"><span>Added {{ added }}. Share their username and password with them.</span></div>{% endif %}
+        {% if errors %}<div class="error-box" role="alert"><ul style="margin:0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+        <label class="field"><span>Name</span><input type="text" name="name" value="{{ values.name if values else '' }}" required></label>
+        <label class="field"><span>Username</span><input type="text" name="username" value="{{ values.username if values else '' }}" required autocapitalize="none"></label>
+        <label class="field"><span>Password</span><input type="password" name="password" required minlength="8" autocomplete="new-password"></label>
+        <fieldset><legend class="field-label">Role</legend>
+          <div class="choice"><label><input type="radio" name="role" value="technician" checked><span>Technician</span></label>
+            <label><input type="radio" name="role" value="manager"><span>Manager</span></label></div></fieldset>
+        <button class="btn">Add to team</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

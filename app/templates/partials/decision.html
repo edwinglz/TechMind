@@ -18,8 +18,12 @@
       <form class="stack" style="--gap:0.5rem" hx-post="/app/tickets/{{ ticket.id }}/assign" hx-target="#ticket-body" hx-swap="outerHTML">
         <h3>Dispatch a technician</h3>
         <label class="sr-only" for="tech">Technician</label>
+        {% if technicians %}
         <select name="technician_id" id="tech">{% for t in technicians %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}</select>
         <button class="btn {{ 'secondary' if fix.applicable else '' }} block">Dispatch with this brief</button>
+        {% else %}
+        <p class="small muted">No technicians yet. <a href="/app/team">Add one on the Team page</a> to dispatch.</p>
+        {% endif %}
       </form>
     {% else %}
       <h2>Waiting on the manager</h2><p class="muted">This job hasn't been dispatched yet.</p>

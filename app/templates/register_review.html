@@ -1,0 +1,82 @@
+{% extends "public_base.html" %}
+{% block title %}Check your data · TechMind{% endblock %}
+{% block content %}
+<div class="setup">
+  <div class="page-head">
+    <div>
+      <h1>Check your data</h1>
+      <p class="muted">{{ pending.company_name }} · manager account <strong>{{ pending.username }}</strong></p>
+    </div>
+  </div>
+
+  {% for n in upload_notes %}<div class="banner note" style="margin-bottom:0.75rem"><span>{{ n }}</span></div>{% endfor %}
+
+  {% if bundle.ok %}
+  <div class="banner yellow" style="margin-bottom:1rem"><span><strong>Everything checks out.</strong> Review the summary, then create your company.</span></div>
+  {% else %}
+  <div class="banner warn" style="margin-bottom:1rem"><span><strong>Some files need fixing.</strong> The problems are listed with the spreadsheet row numbers. Fix them and upload the corrected files below; files with the same name replace the old ones.</span></div>
+  {% endif %}
+
+  <div class="setup-grid">
+    <section class="sheet">
+      <div class="sheet-head"><h2>Files</h2></div>
+      <div class="sheet-body table-wrap">
+        <table class="data">
+          <thead><tr><th>File</th><th>Rows</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for name, r in bundle.reports.items() %}
+            <tr>
+              <td><strong>{{ name }}</strong>{% if name in optional %} <span class="faint small">optional</span>{% endif %}
+                {% if r.errors %}<ul class="small" style="color:var(--red); margin-top:0.3rem">{% for e in r.errors[:12] %}<li>{{ e }}</li>{% endfor %}
+                  {% if r.errors | length > 12 %}<li>…and {{ r.errors | length - 12 }} more</li>{% endif %}</ul>{% endif %}
+                {% if r.warnings %}<ul class="small muted" style="margin-top:0.3rem">{% for w in r.warnings[:6] %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}</td>
+              <td>{{ r.rows }}</td>
+              <td>{% if r.errors %}<span class="chip danger">{{ r.errors | length }} error{{ "s" if r.errors | length > 1 }}</span>
+                {% elif r.warnings %}<span class="chip">Check warnings</span>
+                {% elif r.rows %}<span class="chip closed">OK</span>
+                {% else %}<span class="chip plain tech">Not uploaded</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="stack" style="--gap:1rem">
+      <section class="sheet">
+        <div class="sheet-body stack" style="--gap:0.6rem">
+          <h2>What TechMind will know</h2>
+          {% set L2 = summary.labels %}
+          {% if summary.industry %}<p>{{ summary.industry | cap }}</p>{% endif %}
+          <ul class="signal-list">
+            <li><span>{{ (L2.sites or (L2.site ~ "s") if L2.site else "Sites") | cap }}</span><strong>{{ summary.counts["sites.csv"] }}</strong></li>
+            <li><span>{{ (L2.assets or "Equipment") | cap }}</span><strong>{{ summary.counts["assets.csv"] }}</strong></li>
+            <li><span>Models</span><strong>{{ summary.counts["products.csv"] }}</strong></li>
+            <li><span>Manuals</span><strong>{{ summary.manuals }}</strong></li>
+            <li><span>Parts</span><strong>{{ summary.counts["parts.csv"] }}</strong></li>
+            <li><span>Known issues</span><strong>{{ summary.counts["known_issues.csv"] }}</strong></li>
+            <li><span>Past tickets</span><strong>{{ summary.counts["ticket_history.csv"] }}</strong></li>
+          </ul>
+          {% if summary.settings %}<p class="small muted">Labor {{ "%.2f" | format(summary.settings.labor_rate_per_hour) }}/hour · trip fee {{ "%.2f" | format(summary.settings.trip_fee) }} {{ summary.settings.currency }}</p>{% endif %}
+          {% if L2.reporter %}<p class="small muted">Reports come from: {{ L2.reporter }}</p>{% endif %}
+        </div>
+      </section>
+
+      {% if bundle.ok %}
+      <form method="post" action="/register/{{ token }}/create">
+        <button class="btn tag block">Create {{ pending.company_name }} and log in</button>
+        <p class="small muted" style="margin-top:0.5rem">Next you'll add your technicians.</p>
+      </form>
+      {% endif %}
+
+      <form class="sheet" method="post" action="/register/{{ token }}/files" enctype="multipart/form-data">
+        <div class="sheet-body stack" style="--gap:0.6rem">
+          <h3>{{ "Upload corrected files" if not bundle.ok else "Add or replace files" }}</h3>
+          <input type="file" name="files" multiple accept=".csv,.json,.md,.zip,.txt" required>
+          <button class="btn secondary">Upload and check again</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

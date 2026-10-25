@@ -2,7 +2,7 @@
 
 TechMind turns vague equipment problem reports ("it's not working", "the drinks are flat") into a diagnostic brief before anyone is dispatched: likely causes with step-by-step fixes, cost estimates, questions to ask the reporter, and safe fixes the reporter can try first. Every closed ticket updates the company's knowledge base, so the most common issues and the best-performing fixes stay current. It works for any company that maintains equipment or products (restaurants, HVAC contractors, laptop repair shops, fleets). The demo company is a fictional burger chain whose stores each run beverage dispensers, fryers, griddles, ice machines, walk-in coolers, and rooftop HVAC.
 
-> Status: the full loop works (report → brief → self-fix or dispatch → technician → close → insights). Still to do: the import upload page and deployment. See [docs/PROGRESS.md](docs/PROGRESS.md).
+> Status: the full loop works (report → brief → self-fix or dispatch → technician → close → insights), and new companies can register and import their data. Still to do: deployment. See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Setup
 
@@ -28,6 +28,9 @@ Open http://127.0.0.1:8000 and log in. The login page also pitches the product; 
 - **My jobs** (technicians, made for phones): assigned tickets with the brief, the question checklist, **Refine diagnosis** and **Close job**.
 - **Insights**: rising and fading issues, the fix that currently works best, repeat failures, trips avoided.
 - **History**: every ticket, plus a CSV export in the import format.
+- **Team**: add technicians and managers.
+
+New companies start at **Set up your company** on the login page (`/register`): create the manager account, upload the data files (or one zip), fix anything the review flags, and create the company. **Download the sample company** on that page gives the demo data as a zip, in exactly the format to upload.
 
 On first start, the demo company is loaded from `demo_data/` into a fresh SQLite database (`data/techmind.db`), along with three demo accounts:
 

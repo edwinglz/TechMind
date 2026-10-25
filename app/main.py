@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.db import init_db
-from app.routes import insights, login, public, tickets
+from app.routes import insights, login, public, setup, tickets
 from app.seed import seed_if_empty
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -41,3 +41,4 @@ app.include_router(public.router)
 app.include_router(login.router)
 app.include_router(tickets.router)
 app.include_router(insights.router)
+app.include_router(setup.router)

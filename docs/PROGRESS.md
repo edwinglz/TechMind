@@ -4,7 +4,7 @@
 
 - [x] **Phase 0: Repo setup.** Git, `.gitignore`, `.env.example`, private GitHub repo, README and docs.
 - [x] **Phase 1: Skeleton, data model, demo data.** FastAPI app, SQLModel tables, FTS5, demo company data and manuals, importer core used for seeding, public product page, username/password login, company dashboard.
-- [ ] **Phase 2: Import and catalog.** Import page with preview and errors; sites, assets, products, known issues pages.
+- [x] **Phase 2: Import and catalog.** Company registration with upload, review (row counts, errors with row numbers, fix and re-upload) and create; Team page. Catalog pages are covered by unit pages and Insights.
 - [x] **Phase 3: Intake and brief.** Intake form (dictation, photo, service mode), retrieval, brief generation (mock from company data; live via Claude, untested without a key), brief view with costs, progress steps, repeat-failure banner, unknown-model handling.
 - [x] **Phase 4: Review, technician, close.** Self-fix approval flow, assignment, mobile technician view, questions checklist, Refine, chat, close-ticket form.
 - [x] **Phase 5: Adaptability.** Fix variants with Haiku matching, trends, asset pages, history page, dispatches-avoided counter, CSV export.
@@ -21,11 +21,13 @@
 - **Technician phone view**: My jobs, the brief, Yes/No/Not sure answers, Refine diagnosis, bottom bar with Close job.
 - **Close job**: what was wrong (brief's top cause preselected, or a new issue), which fix (variants with success rates, or describe a new one), parts, minutes, fixed or not. This updates frequency, trends and the recommended fix immediately.
 - **Insights**, **History**, unit pages, CSV export of ticket history in the import format.
-- 25 tests pass, including the full demo flow.
+- **Set up your company** (`/register`, linked from the login page): company name, manager account and file upload (CSVs, profile.json, manuals, or one zip); a review page with every file's rows, errors and warnings; upload corrected files; create the company and log in. A sample zip of the demo company can be downloaded from the page.
+- **Team** page: managers add technicians or other managers.
+- Follow-up questions never repeat or rephrase earlier ones.
+- 33 tests pass, including the full demo flow and registration.
 
 ## Next
 
-- Phase 2: the Import page (upload, preview with row counts and errors, load) and catalog pages.
 - Keep tuning `app/ai/prompts.py` with live runs.
 - Phase 6: deploy and rehearse.
 

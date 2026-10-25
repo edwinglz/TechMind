@@ -1,0 +1,15 @@
+{#- Layout for public pages (registration). -#}
+{% extends "base.html" %}
+{% from "macros.html" import logo %}
+{% block body %}
+<header class="topbar">
+  <div class="inner">
+    <a href="/" class="wordmark">{{ logo() }}TechMind</a>
+    <nav aria-label="Main"></nav>
+    <div class="who"><a href="/login" style="color:#c5d0d5">Log in</a></div>
+  </div>
+</header>
+<main class="page">
+  {% block content %}{% endblock %}
+</main>
+{% endblock %}

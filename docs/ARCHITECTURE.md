@@ -29,7 +29,7 @@ The profile is injected into the AI prompt and into every page template. Swappin
 | `app/services/tickets.py` | Every ticket change (create, self-fix, assign, answer, close) and the knowledge update on close |
 | `app/services/search.py`, `fix_variants.py` | Search-index writes; fix-step normalization |
 | `app/ai/` | `schema.py` (the brief's shape, Pydantic), `prompts.py` (the live prompt), `client.py` (Claude calls) |
-| `app/routes/` | `public.py` (front page), `login.py`, `tickets.py` (board, intake, ticket actions, close, unit pages), `insights.py` (insights, history, CSV export) |
+| `app/routes/` | `public.py` (front page), `login.py`, `tickets.py` (board, intake, ticket actions, close, unit pages), `insights.py` (insights, history, CSV export), `setup.py` (company registration and import, team) |
 | `app/templates/` | HTML pages; `partials/` are the pieces HTMX swaps in. Styling is one hand-written stylesheet, `app/static/app.css` |
 | `demo_data/` | The fictional demo company, in the import format |
 | `scripts/generate_demo_history.py` | Builds and checks `demo_data/assets.csv` and `demo_data/ticket_history.csv` |
@@ -46,7 +46,8 @@ The profile is injected into the AI prompt and into every page template. Swappin
 
 1. **Parse** (`app/importer/parse.py`). Files arrive as name → bytes, so uploads and the demo folder take the same path. Zips are unpacked and `.md` files become manuals. Each CSV is checked for required columns, values are converted (dates, numbers, y/n, `;`-lists, `|`-lists), and every reference is checked (an asset's `model_id` must exist in `products.csv`, and so on). Problems are reported with spreadsheet row numbers. Nothing is written yet.
 2. **Load** (`app/importer/load.py`). This creates the company and its default users, then copies every row. Manuals are split at `##`/`###` headings into sections and indexed for search. Each known issue's documented fix becomes its first fix variant. Imported history tickets are grouped by the fix steps they used, so a different fix that technicians have been using becomes its own variant with its own track record.
-3. **Seed** (`app/seed.py`). On startup, if there are no companies, the app parses and loads `demo_data/` and creates the demo accounts.
+3. **Register** (`app/routes/setup.py`). A new company's manager fills in the account and uploads files. They're parsed (step 1) and kept in `UPLOAD_DIR/imports/<token>` with the account details (password already hashed) until the review page shows no errors; then they're loaded (step 2), the manager account is created and the manager is logged in.
+4. **Seed** (`app/seed.py`). On startup, if there are no companies, the app parses and loads `demo_data/` and creates the demo accounts.
 
 ## Ticket flow
 

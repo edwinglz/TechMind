@@ -142,3 +142,8 @@ One entry per significant choice: what we decided, what else we considered, and 
 ## Live briefs are kept short, and a cut-off reply is asked again from scratch
 - **Decided:** the prompt caps lengths (2-sentence summary and evidence, at most 4 causes and 6 steps per list), `max_tokens` is 8000, and a reply cut off at the limit is re-requested with a "keep it short" reminder instead of being sent back for correction.
 - **Why:** first live test: a reply hit the 4000-token limit mid-JSON and the correction round trip took over a minute. Long briefs are also worse on a phone.
+
+## Registration and import are one flow, checked before anything is saved
+- **Decided:** `/register` takes the company name, the manager's account and the files together. A review page shows each file's rows, errors (with spreadsheet row numbers) and warnings; corrected files can be uploaded on the same page, and only a clean import can be created. Pending uploads wait in `UPLOAD_DIR/imports/<token>`.
+- **Alternatives:** create the company first and import into it later; write rows as they're validated.
+- **Why:** matches the product idea (a manager registers their company and brings their data), and a half-imported company is worse than none. Technicians are added afterwards on the Team page, since accounts aren't part of the import format.
