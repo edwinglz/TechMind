@@ -80,7 +80,9 @@ ul, ol { margin: 0; padding-left: 1.25rem; }
   .topbar nav a { padding: 0.5rem 0.4rem; }
 }
 
-.page { max-width: 1240px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+/* overflow-anchor: htmx swaps parts of the page in place. Chrome's scroll anchoring follows the
+   old content as it is replaced and lands the page at the bottom, so it is turned off here. */
+.page { max-width: 1240px; margin: 0 auto; padding: 1.5rem 1rem 4rem; overflow-anchor: none; }
 .page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
 .page-head p { margin-top: 0.25rem; }
 
@@ -203,8 +205,8 @@ a.tag-card:hover .tag-title { text-decoration: underline; text-underline-offset:
 .ticket-head .meta { margin-top: 0.4rem; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-size: 0.95rem; }
 
 .ticket-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 1.25rem; align-items: start; }
-.ticket-side { position: sticky; top: 1rem; }
-@media (max-width: 1000px) { .ticket-grid { grid-template-columns: 1fr; } .ticket-side { position: static; } }
+.ticket-side { min-width: 0; }
+@media (max-width: 1000px) { .ticket-grid { grid-template-columns: 1fr; } }
 
 .report-quote { font-size: 1.2rem; line-height: 1.4; border-left: 4px solid var(--tag); padding: 0.1rem 0 0.1rem 0.9rem; }
 .report { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: start; }
