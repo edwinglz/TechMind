@@ -48,6 +48,46 @@ def failed_self_fix(session: Session, ticket: Ticket) -> dict | None:
     return None
 
 
+def asked_before(session: Session, ticket_id: int) -> list[str]:
+    """Every question shown in any earlier version of this ticket's brief, oldest first."""
+    seen: dict[str, None] = {}
+    for brief in session.exec(select(Brief).where(Brief.ticket_id == ticket_id).order_by(Brief.version)):
+        for q in brief.data.get("questions_for_reporter", []):
+            seen.setdefault(q["question"], None)
+    return list(seen)
+
+
+def _too_similar(a: str, b: str) -> bool:
+    """True when two questions ask about essentially the same thing.
+
+    Compares word stems: if most of the shorter question's words appear in the other one, a
+    reporter would hear it as the same question again."""
+    filler = {"if", "how", "which", "you", "they", "see", "look", "check", "there", "does", "example", "compar"}
+    sa, sb = stems(a) - filler, stems(b) - filler
+    if not sa or not sb:
+        return False
+    shared = len(sa & sb)
+    return shared >= 3 and shared / min(len(sa), len(sb)) >= 0.5
+
+
+def drop_repeat_questions(questions: list[dict], previous: list[str], answers: dict) -> list[dict]:
+    """Remove questions that repeat or rephrase an earlier one.
+
+    A question already answered is never asked again in any wording. An earlier question that
+    wasn't answered may stay, but only word for word (so a rephrased copy doesn't pile up)."""
+    kept: list[dict] = []
+    for q in questions:
+        text = q["question"]
+        if text in answers:
+            continue
+        if any(_too_similar(text, old) for old in previous if old != text):
+            continue
+        if any(_too_similar(text, k["question"]) for k in kept):
+            continue
+        kept.append(q)
+    return kept
+
+
 def _answers_text(answers: dict) -> str:
     return " ".join(f"{q} {a.get('note', '')}" for q, a in answers.items() if a.get("answer") == "yes")
 
@@ -226,6 +266,7 @@ def generate(session: Session, ticket: Ticket, actor_id: int | None, refine: boo
     labels = labels_for(company)
     previous = latest_brief(session, ticket.id)
     answers = ticket.answers or {}
+    previous_questions = asked_before(session, ticket.id)
     self_fix = failed_self_fix(session, ticket)
     ctx = build_context(session, ticket, extra_text=_answers_text(answers))
 
@@ -239,7 +280,8 @@ def generate(session: Session, ticket: Ticket, actor_id: int | None, refine: boo
             note = " | ".join(self_fix.get("steps", [])) + " -> did not fix it"
         try:
             brief, tokens_in, tokens_out = client.diagnose(
-                prompts.system_prompt(ctx, labels), prompts.user_prompt(ctx, labels, answers, note), ticket.photo_path)
+                prompts.system_prompt(ctx, labels), prompts.user_prompt(ctx, labels, answers, note, previous_questions),
+                ticket.photo_path)
             data, mode, model = brief.model_dump(), "live", client.BRIEF_MODEL
         except Exception as error:  # network, key, or invalid output: never leave the page empty
             log.warning("live brief failed, falling back: %s", error)
@@ -249,6 +291,8 @@ def generate(session: Session, ticket: Ticket, actor_id: int | None, refine: boo
     if data is None:
         data = _mock(ctx, labels, answers, self_fix, previous.data if previous else None).model_dump()
 
+    data["questions_for_reporter"] = drop_repeat_questions(data.get("questions_for_reporter", []),
+                                                           previous_questions, answers)
     data = _enrich(data, ctx)
     data["context"] = {"repeat_count": ctx.repeat_count, "repeat_failure": ctx.repeat_failure,
                        "manual_sections": len(ctx.manual), "similar_tickets": len(ctx.similar),

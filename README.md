@@ -82,7 +82,7 @@ Develop in **mock** mode: briefs are built from the company's own data (known is
 Before the demo: delete `data/techmind.db` and restart so the board is empty and the numbers match.
 
 0. **Open.** The login page explains the product in one line. Sign in as `manager`; the board is empty.
-1. **Intake.** "Store #4 calls." Click **New report**, pick *Store #4 - Riverside*, then the *CI-200 Countertop Ice/Beverage Dispenser*. Its recent tickets appear on the right. Dictate "Coke and Sprite are coming out flat, kind of watery", keep **Guide them by phone first**, and create the report.
+1. **Intake.** "Store #4 calls." Click **New report**, pick *Store #4 - Joe Battle*, then the *CI-200 Countertop Ice/Beverage Dispenser*. Its recent tickets appear on the right. Dictate "Coke and Sprite are coming out flat, kind of watery", keep **Guide them by phone first**, and create the report.
 2. **Brief.** The preparing steps play, then: a repeat-failure warning (4 tickets in 60 days), carbonator pump failure ranked first with evidence, sources, steps, parts and a cost, a CO2 safety warning, questions for store staff, and a phone self-fix (check the syrup bag and CO2 tank) that would save about $116.
 3. **Self-fix.** Click **Approve, I'll call the store**. "The store says the tank is full." Type that note and click **Didn't work**: the brief re-ranks, and the board shows the ticket moved. Dispatch to **Ana** and send her a chat message.
 4. **Technician (phone).** On a phone, log in as `ana`. She sees the job, the repeat flag and the brief. Under **Ask the store staff**, tap **Yes** for "Carbonator pump runs constantly or hums?" and **Refine diagnosis**.

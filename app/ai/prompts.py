@@ -26,7 +26,7 @@ Rules:
   - Prefer `"kind": "yes_no"`: a question whose honest answer is yes or no ("Is the pump humming nonstop?").
   - Use `"kind": "reading"` only for a short value they can read off the equipment, such as a temperature, a gauge or an error code ("What temperature does the display show?").
   - Never ask about things they can't see or wouldn't know, such as when a part was last serviced.
-  - Don't repeat a question that was already answered; build on the answer instead.
+  - Every question must ask for NEW information. Never repeat or rephrase anything listed under QUESTIONS ALREADY ASKED, even with different wording; build on those answers instead. An unanswered question may be kept only word for word.
 - Self-fix: only steps from this allowed list, adapted to the situation: {allowed}. NEVER include anything from this forbidden list: {forbidden}. Set `applicable` to false if no allowed step fits. `targets` lists the known issue ids the self-fix could resolve.
 - Safety: include a warning for every one of these company safety topics that is relevant to a likely cause: {safety}.
 - If the photo shows something relevant, describe it in `image_findings`; otherwise leave it empty.
@@ -64,7 +64,8 @@ def _steps(steps: list[str]) -> str:
     return " | ".join(steps)
 
 
-def user_prompt(ctx: Context, labels: dict, answers: dict, self_fix_note: str | None) -> str:
+def user_prompt(ctx: Context, labels: dict, answers: dict, self_fix_note: str | None,
+                asked_before: list[str] | None = None) -> str:
     t = ctx.ticket
     lines = [f"REPORT from the {labels['reporter']} at {ctx.site.name}: \"{t.description}\""]
     lines.append(f"Service mode: {'remote (guide the ' + labels['reporter'] + ' by phone)' if t.service_mode == 'remote' else 'on-site visit'}")
@@ -83,6 +84,11 @@ def user_prompt(ctx: Context, labels: dict, answers: dict, self_fix_note: str | 
         for q, a in answers.items():
             note = f" ({a.get('note')})" if a.get("note") else ""
             lines.append(f"- {q} -> {a.get('answer')}{note}")
+    if asked_before:
+        lines.append("\nQUESTIONS ALREADY ASKED (do not ask these again in other words):")
+        for q in asked_before:
+            a = answers.get(q)
+            lines.append(f"- {q} -> {a.get('answer') if a else 'not answered yet'}")
     if self_fix_note:
         lines.append(f"\nSELF-FIX ALREADY TRIED: {self_fix_note}")
 

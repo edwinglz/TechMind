@@ -1,9 +1,9 @@
 site_id,name,address,region
-S01,Store #1 - Downtown,"210 Main St, Maplewood",Central
-S02,Store #2 - Northgate,"88 Northgate Blvd, Maplewood",North
-S03,Store #3 - Airport Rd,"5150 Airport Rd, Cedar Falls",East
-S04,Store #4 - Riverside,"1420 Riverside Ave, Maplewood",Central
-S05,Store #5 - Oak Plaza,"33 Oak Plaza, Brookhaven",South
-S06,Store #6 - University,"901 College Ave, Cedar Falls",East
-S07,Store #7 - Highway 9,"12 Highway 9 Service Center, Linwood",North
-S08,Store #8 - Lakeshore,"470 Lakeshore Dr, Brookhaven",South
+S01,Store #1 - Mesa,"4410 N Mesa St, El Paso, TX",West
+S02,Store #2 - Montana,"9150 Montana Ave, El Paso, TX",East
+S03,Store #3 - Gateway Boulevard,"6020 Gateway Blvd E, El Paso, TX",Central
+S04,Store #4 - Joe Battle,"3255 Joe Battle Blvd, El Paso, TX",East
+S05,Store #5 - Alameda,"7840 Alameda Ave, El Paso, TX",Lower Valley
+S06,Store #6 - Montwood,"11365 Montwood Dr, El Paso, TX",East
+S07,Store #7 - Sunland Park,"1050 Sunland Park Dr, El Paso, TX",West
+S08,Store #8 - Dyer,"8601 Dyer St, El Paso, TX",Northeast
