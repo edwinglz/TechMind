@@ -152,3 +152,12 @@ One entry per significant choice: what we decided, what else we considered, and 
 - **Decided:** deploy with `render.yaml` on Render's free plan; Python pinned to 3.13 in `.python-version` (Render's default for new services is newer than what we test on); at most `LIVE_BRIEFS_PER_HOUR` (40) Claude briefs per hour, after which mock briefs are used.
 - **Alternatives:** Railway; a paid plan with a persistent disk.
 - **Why:** free, deploys straight from GitHub on every push, and the ephemeral disk is fine because the demo re-seeds itself. The cap protects the small API budget from a public link.
+
+## Routes that call Claude run in worker threads
+- **Decided:** the brief, refine and self-fix-outcome routes are plain `def` (FastAPI runs them in a thread pool); closing runs its possible Haiku call with `run_in_threadpool`. SQLite uses WAL and a 30-second lock timeout so those threads can write side by side.
+- **Alternatives:** `async def` routes calling the synchronous Anthropic client (the original code); the async Anthropic client.
+- **Why:** on Render, an `async def` route waiting 20-40 seconds for Claude froze the whole server: phones needed many refreshes and buttons like Dispatch seemed dead. Measured with a slow fake API: a health check took 9.5 s during a brief before the change and 2 ms after; three briefs now run in parallel.
+
+## Failed actions say so
+- **Decided:** a small message appears at the bottom of the screen when an htmx action gets an error or can't reach the server.
+- **Why:** before, a failed click looked exactly like a click that did nothing.

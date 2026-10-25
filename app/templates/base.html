@@ -14,5 +14,27 @@
 </head>
 <body>
   {% block body %}{% endblock %}
+  <div class="toast" id="toast" role="alert" hidden></div>
+  <script>
+    // When an action fails (server error, lost connection), say so instead of silently doing nothing.
+    (function () {
+      const toast = document.getElementById("toast");
+      let timer;
+      function show(text) {
+        toast.textContent = text; toast.hidden = false;
+        clearTimeout(timer); timer = setTimeout(() => { toast.hidden = true; }, 7000);
+      }
+      document.addEventListener("htmx:responseError", (e) => {
+        if (e.detail.elt && e.detail.elt.id === "chat-poll") return;
+        const code = e.detail.xhr ? e.detail.xhr.status : "";
+        show(code === 403 ? "You don't have access to that." :
+             `That didn't go through (error ${code}). Wait a moment and try again.`);
+      });
+      document.addEventListener("htmx:sendError", (e) => {
+        if (e.detail.elt && e.detail.elt.id === "chat-poll") return;
+        show("Couldn't reach TechMind. Check the connection and try again.");
+      });
+    })();
+  </script>
 </body>
 </html>

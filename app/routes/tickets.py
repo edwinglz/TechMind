@@ -1,19 +1,25 @@
 """Ticket pages: the manager's board, report intake, the ticket with its brief,
 and every action on it (self-fix, dispatch, questions, refine, chat, close).
 
+Routes that call Claude (brief, refine, self-fix outcome) are plain `def`
+functions on purpose: FastAPI runs those in a worker thread. As `async def`
+they would block the whole server for the 20-40 seconds a live brief takes,
+and every other page (other users, chat polling, the phone) would hang.
+
 Actions are HTMX requests. Most return the refreshed ticket body (header,
 brief and side panel) so the page always shows the current state; chat and
 question answers return only their own panel so typing and open sections are
 not disturbed.
 """
 
-import asyncio
 import os
 import secrets
+import time
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
+from starlette.concurrency import run_in_threadpool
 from sqlmodel import Session, select
 
 from app.auth import Current, require_login
@@ -182,12 +188,12 @@ def ticket_page(request: Request, ticket_id: int, cur: Current = Depends(require
 
 
 @router.post("/tickets/{ticket_id}/brief", response_class=HTMLResponse)
-async def make_brief(request: Request, ticket_id: int, cur: Current = Depends(require_login),
+def make_brief(request: Request, ticket_id: int, cur: Current = Depends(require_login),
                      session: Session = Depends(get_session)):
     ticket = _ticket_or_404(session, cur, ticket_id)
     if brief_service.latest_brief(session, ticket.id) is None:
         if settings.ai_mode == "mock" and MOCK_DELAY:
-            await asyncio.sleep(MOCK_DELAY)
+            time.sleep(MOCK_DELAY)
         brief_service.generate(session, ticket, cur.user.id)
         if ticket.status == TicketStatus.NEW:
             ticket.status = TicketStatus.BRIEFED
@@ -196,11 +202,11 @@ async def make_brief(request: Request, ticket_id: int, cur: Current = Depends(re
 
 
 @router.post("/tickets/{ticket_id}/refine", response_class=HTMLResponse)
-async def refine(request: Request, ticket_id: int, cur: Current = Depends(require_login),
+def refine(request: Request, ticket_id: int, cur: Current = Depends(require_login),
                  session: Session = Depends(get_session)):
     ticket = _ticket_or_404(session, cur, ticket_id)
     if settings.ai_mode == "mock" and MOCK_DELAY:
-        await asyncio.sleep(MOCK_DELAY / 2)
+        time.sleep(MOCK_DELAY / 2)
     brief_service.generate(session, ticket, cur.user.id, refine=True)
     session.commit()
     return _body(request, session, cur, ticket)
@@ -235,7 +241,7 @@ def approve_self_fix(request: Request, ticket_id: int, cur: Current = Depends(re
 
 
 @router.post("/tickets/{ticket_id}/self-fix/outcome", response_class=HTMLResponse)
-async def self_fix_outcome(request: Request, ticket_id: int, resolved: str = Form(...), note: str = Form(""),
+def self_fix_outcome(request: Request, ticket_id: int, resolved: str = Form(...), note: str = Form(""),
                            cur: Current = Depends(require_login), session: Session = Depends(get_session)):
     ticket = _ticket_or_404(session, cur, ticket_id)
     svc.record_self_fix_outcome(session, ticket, cur.user.id, resolved == "yes", note)
@@ -315,10 +321,12 @@ async def close(request: Request, ticket_id: int, cur: Current = Depends(require
     minutes = int(form.get("minutes") or 0)
     if not issue_choice or (issue_choice == "new" and not ticket.product_id):
         raise HTTPException(400, "Pick what was wrong.")
-    svc.close(session, ticket, cur.user.id, issue_choice=issue_choice,
-              new_issue_title=str(form.get("new_issue_title", "")), variant_choice=variant_choice,
-              fix_description=str(form.get("fix_description", "")), part_refs=list(form.getlist("parts")),
-              minutes=minutes, resolved=form.get("resolved") != "no")
+    # In a worker thread: closing may ask Claude to match a described fix, which takes seconds.
+    await run_in_threadpool(
+        svc.close, session, ticket, cur.user.id, issue_choice=issue_choice,
+        new_issue_title=str(form.get("new_issue_title", "")), variant_choice=variant_choice,
+        fix_description=str(form.get("fix_description", "")), part_refs=list(form.getlist("parts")),
+        minutes=minutes, resolved=form.get("resolved") != "no")
     session.commit()
     return RedirectResponse(f"/app/tickets/{ticket.id}?closed=1", status_code=303)
 

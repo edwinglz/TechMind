@@ -30,11 +30,15 @@ FTS_TABLES = [
 def make_engine(url: str) -> Engine:
     if url.startswith("sqlite:///") and ":memory:" not in url:
         Path(url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
-    new_engine = create_engine(url, connect_args={"check_same_thread": False})
+    # timeout: requests run in several threads, so wait up to 30 s for another one's write to
+    # finish instead of failing with "database is locked".
+    new_engine = create_engine(url, connect_args={"check_same_thread": False, "timeout": 30})
 
     @event.listens_for(new_engine, "connect")
     def _enable_foreign_keys(dbapi_conn, _record):
         dbapi_conn.execute("PRAGMA foreign_keys = ON")
+        if ":memory:" not in url:
+            dbapi_conn.execute("PRAGMA journal_mode = WAL")  # readers don't wait for writers
 
     return new_engine
 

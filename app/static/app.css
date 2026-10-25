@@ -373,3 +373,9 @@ code { font-size: 0.9em; background: var(--sheet-2); padding: 0 0.25rem; border-
 @media (prefers-reduced-motion: reduce) { .busy-bar::after { animation: none; left: 0; width: 100%; } .prep-steps li.working::before { animation: none; } }
 .q-reading { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
 .q-reading input { min-height: 38px; padding: 0.4rem 0.6rem; }
+
+/* error message for failed actions */
+.toast { position: fixed; left: 50%; bottom: 1.25rem; transform: translateX(-50%); z-index: 60; max-width: min(92vw, 460px);
+  background: var(--ink); color: #fff; padding: 0.75rem 1rem; border-radius: var(--r); border-left: 4px solid var(--red);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25); font-size: 0.95rem; }
+@media (max-width: 760px) { .toast { bottom: 5.5rem; } }
