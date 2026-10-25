@@ -76,7 +76,10 @@ class IssueStat:
 
 
 def _age_days(when: datetime) -> int:
-    return (today() - when.date()).days
+    """Days since a ticket was opened. Never negative: tickets are stored in UTC (already
+    "tomorrow" in the evening in the Americas), and with AS_OF_DATE pinned for the demo, tickets
+    created during the demo would otherwise look like they're from the future and be skipped."""
+    return max((today() - when.date()).days, 0)
 
 
 def issue_stats(session: Session, company_id: int, product_ids: list[int] | None = None) -> dict[int, IssueStat]:
@@ -98,8 +101,6 @@ def issue_stats(session: Session, company_id: int, product_ids: list[int] | None
     for t in tickets:
         s = stats[t.known_issue_id]
         age = _age_days(t.created_at)
-        if age < 0:
-            continue  # demo data dated after AS_OF_DATE
         s.total += 1
         s.by_reporter += t.resolved_by_reporter
         if s.last_seen is None or t.created_at > s.last_seen:
